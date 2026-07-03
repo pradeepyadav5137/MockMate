@@ -37,6 +37,18 @@ export const feedbackService = {
   getRecording: (id) => api.get(`/feedback/${id}/recording`),
 };
 
+export const recordingService = {
+  getInfo: (interviewId) => api.get(`/feedback/${interviewId}/recording`),
+  getStreamUrl: (interviewId) => {
+    const base = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+    return `${base}/storage/recordings/${interviewId}/stream`;
+  },
+  getDownloadUrl: (interviewId) => {
+    const base = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+    return `${base}/storage/recordings/${interviewId}/download`;
+  },
+};
+
 export const paymentService = {
   createOrder: (data) => api.post('/payment/create-order', data),
   verify: (data) => api.post('/payment/verify', data),

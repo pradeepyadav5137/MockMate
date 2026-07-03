@@ -115,6 +115,7 @@ const InterviewModel = {
       recordingPath: data.recordingPath || null,
       recordingExpiresAt: data.recordingExpiresAt ? new Date(data.recordingExpiresAt).toISOString() : null,
       recordingUnlocked: Boolean(data.recordingUnlocked),
+      recordingStatus: data.recordingStatus || null,
       recordingDeletedAt: data.recordingDeletedAt || null,
       reminderEmailSent: Boolean(data.reminderEmailSent),
       createdAt: data.createdAt || now,

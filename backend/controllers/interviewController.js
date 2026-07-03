@@ -276,7 +276,7 @@ const uploadRecording = async (req, res) => {
 
     const { saveRecording } = require('../services/storageService');
     const ext = req.file.mimetype === 'audio/webm' ? 'webm' : req.file.mimetype === 'audio/ogg' ? 'ogg' : 'webm';
-    const filename = `recording.${ext}`;
+    const filename = `interview.${ext}`;
     const result = await saveRecording(req.file.buffer, filename, interview._id);
 
     if (!result.success) {
@@ -284,9 +284,16 @@ const uploadRecording = async (req, res) => {
     }
 
     interview.recordingPath = result.path;
+    interview.recordingStatus = 'ready';
     interview.recordingExpiresAt = interview.recordingExpiresAt || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
     await interview.save();
     console.log(`✅ Recording saved for interview ${interview._id}`);
+
+    // Send recording-ready email notification
+    emailService.sendRecordingReadyEmail(interview.userId, interview._id).catch((err) =>
+      console.error('Recording-ready email failed:', err.message)
+    );
+
     res.json({ success: true, url: result.url });
   } catch (err) {
     console.error('Upload recording error:', err.message);

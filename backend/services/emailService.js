@@ -100,15 +100,66 @@ const getInterviewReadyTemplate = (name, role) => `
 `;
 
 const getRecordingNotificationTemplate = (name, interviewId, clientUrl) => `
-<p>Hi ${name},</p>
-<p>Your MockMate interview recording is available for 24 hours.</p>
-<p><a href="${clientUrl}/interview/${interviewId}/feedback">Open feedback and recording options</a></p>
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"/></head>
+<body style="margin:0;padding:0;background:#0a0a0f;font-family:Inter,sans-serif;">
+  <div style="max-width:560px;margin:40px auto;background:linear-gradient(135deg,#1a1a2e,#16213e);border-radius:16px;overflow:hidden;border:1px solid rgba(139,92,246,0.3);">
+    <div style="background:linear-gradient(135deg,#14b8a6,#0d9488);padding:32px;text-align:center;">
+      <h1 style="margin:0;color:#fff;font-size:24px;font-weight:700;">🎙️ MockMate</h1>
+      <p style="margin:8px 0 0;color:rgba(255,255,255,0.85);font-size:14px;">Your Interview Recording is Ready</p>
+    </div>
+    <div style="padding:32px;">
+      <h2 style="color:#e2e8f0;margin-top:0;">Hi ${name},</h2>
+      <p style="color:#94a3b8;line-height:1.8;font-size:15px;">
+        Thank you for practicing with MockMate!
+      </p>
+      <p style="color:#94a3b8;line-height:1.8;font-size:15px;">
+        Your interview recording is ready. You can access it from your MockMate account using the link below:
+      </p>
+      <div style="text-align:center;margin:28px 0;">
+        <a href="${clientUrl}/dashboard/recordings" style="background:linear-gradient(135deg,#14b8a6,#0d9488);color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600;display:inline-block;font-size:15px;">View Recording</a>
+      </div>
+      <p style="color:#94a3b8;line-height:1.8;font-size:14px;">
+        For <strong style="color:#a78bfa;">Pro</strong> interviews, recording access is included free.<br/>
+        For other interviews, you can unlock and download your recording for <strong style="color:#fbbf24;">₹9</strong>.
+      </p>
+      <p style="color:#f87171;font-size:13px;margin-top:20px;">
+        ⏰ Please note that the recording is available for <strong>24 hours only</strong>.
+      </p>
+      <hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:24px 0;" />
+      <p style="color:#64748b;font-size:13px;line-height:1.6;">
+        Keep practicing and good luck with your preparation!<br/>
+        — MockMate Team
+      </p>
+    </div>
+  </div>
+</body>
+</html>
 `;
 
 const getReminderTemplate = (name, interviewId, clientUrl) => `
-<p>Hi ${name},</p>
-<p>Your interview recording will expire soon. Unlock it before the 24 hour window ends.</p>
-<p><a href="${clientUrl}/interview/${interviewId}/feedback">Open recording options</a></p>
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"/></head>
+<body style="margin:0;padding:0;background:#0a0a0f;font-family:Inter,sans-serif;">
+  <div style="max-width:560px;margin:40px auto;background:linear-gradient(135deg,#1a1a2e,#16213e);border-radius:16px;overflow:hidden;border:1px solid rgba(139,92,246,0.3);">
+    <div style="background:linear-gradient(135deg,#f59e0b,#d97706);padding:32px;text-align:center;">
+      <h1 style="margin:0;color:#fff;font-size:24px;font-weight:700;">⏰ Recording Expiring Soon</h1>
+    </div>
+    <div style="padding:32px;">
+      <h2 style="color:#e2e8f0;margin-top:0;">Hi ${name},</h2>
+      <p style="color:#94a3b8;line-height:1.8;">
+        Your interview recording will expire in less than <strong style="color:#f87171;">2 hours</strong>. After that, it will be permanently deleted.
+      </p>
+      <div style="text-align:center;margin:28px 0;">
+        <a href="${clientUrl}/dashboard/recordings" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600;display:inline-block;">Access Recording Now</a>
+      </div>
+      <p style="color:#64748b;font-size:13px;">Unlock your recording for ₹9 before it expires.</p>
+    </div>
+  </div>
+</body>
+</html>
 `;
 
 const sendVerificationEmail = (user) => sendEmail({
@@ -128,6 +179,17 @@ const sendRecordingNotification = async (userId, interviewId) => {
   });
 };
 
+const sendRecordingReadyEmail = async (userId, interviewId) => {
+  const User = require('../models/User');
+  const user = await User.findById(userId);
+  if (!user) return null;
+  return sendEmail({
+    to: user.email,
+    subject: 'Your MockMate Interview Recording is Ready',
+    html: getRecordingNotificationTemplate(user.name, interviewId, process.env.CLIENT_URL || 'http://localhost:3000'),
+  });
+};
+
 const sendReminderEmail = (user, interview) => sendEmail({
   to: user.email,
   subject: 'Your MockMate recording expires soon',
@@ -138,8 +200,10 @@ module.exports = {
   sendEmail,
   sendVerificationEmail,
   sendRecordingNotification,
+  sendRecordingReadyEmail,
   sendReminderEmail,
   getVerificationEmailTemplate,
   getPasswordResetTemplate,
   getInterviewReadyTemplate,
 };
+

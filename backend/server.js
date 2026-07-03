@@ -25,7 +25,9 @@ app.use(passport.initialize());
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/storage', require('./routes/storage'));
-app.use('/api/storage', express.static(path.join(__dirname, 'storage')));
+// Serve only resumes as static (they use a public URL pattern from uploadResume)
+app.use('/api/storage/resumes', express.static(path.join(__dirname, 'storage', 'resumes')));
+// NOTE: recordings/ and feedback-reports/ are NOT served statically — they go through authenticated endpoints
 
 app.use('/api/interview/create', rateLimit({ windowMs: 15 * 60 * 1000, max: 10 }));
 app.use('/api/payment', rateLimit({ windowMs: 15 * 60 * 1000, max: 20 }));

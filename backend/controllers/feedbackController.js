@@ -1,5 +1,4 @@
 const Interview = require('../models/Interview');
-const { getRecordingDownloadUrl } = require('../services/storageService');
 const feedbackService = require('../services/feedbackService');
 
 const getUserId = (req) => String(req.user?.id || req.user?._id || '');
@@ -57,19 +56,51 @@ const getRecording = async (req, res, next) => {
   try {
     const interview = await loadOwnedInterview(req, res);
     if (!interview) return;
-    if (!interview.recordingPath || interview.recordingDeletedAt) {
-      return res.status(404).json({ success: false, message: 'Recording not found or expired.' });
+
+    // Recording expired or deleted
+    if (interview.recordingDeletedAt || interview.recordingStatus === 'expired') {
+      return res.json({
+        success: true,
+        recording: {
+          status: 'expired',
+          url: null,
+          isDownloadable: false,
+          expiresAt: interview.recordingExpiresAt,
+          unlocked: interview.recordingUnlocked,
+          pricingTier: interview.pricingTier,
+        },
+      });
     }
-    const downloadUrl = interview.recordingUnlocked
-      ? (await getRecordingDownloadUrl(interview.recordingPath, interview._id)).url
-      : null;
+
+    if (!interview.recordingPath) {
+      return res.json({
+        success: true,
+        recording: {
+          status: interview.recordingStatus || (interview.status === 'completed' ? 'pending' : null),
+          url: null,
+          isDownloadable: false,
+          expiresAt: interview.recordingExpiresAt,
+          unlocked: interview.recordingUnlocked,
+          pricingTier: interview.pricingTier,
+        },
+      });
+    }
+
+    // Recording exists — determine access
+    const hasAccess = interview.pricingTier === 'pro' || interview.recordingUnlocked;
+    const apiBase = `/api/storage/recordings/${interview._id}`;
+
     res.json({
       success: true,
       recording: {
-        url: downloadUrl,
-        isDownloadable: interview.recordingUnlocked,
+        status: interview.recordingStatus || 'ready',
+        url: hasAccess ? `${apiBase}/stream` : null,
+        downloadUrl: hasAccess ? `${apiBase}/download` : null,
+        isDownloadable: hasAccess,
         expiresAt: interview.recordingExpiresAt,
         unlocked: interview.recordingUnlocked,
+        pricingTier: interview.pricingTier,
+        locked: !hasAccess,
       },
     });
   } catch (error) {

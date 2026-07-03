@@ -8,12 +8,13 @@ const createOrder = async (req, res) => {
     const { type, tier, interviewId } = req.body;
     let amount;
     if (type === 'interview') amount = tier === 'basic' ? 900 : 1900;
-    else if (type === 'recording') {
+    else if (type === 'recording' || type === 'recording_unlock') {
       amount = 900;
       const interview = await Interview.findById(interviewId);
       if (!interview) return res.status(404).json({ error: 'Interview not found' });
       if (String(interview.userId) !== String(req.user.id || req.user._id)) return res.status(403).json({ error: 'Unauthorized' });
-      if (!interview.recordingExpiresAt || interview.recordingExpiresAt <= new Date()) return res.status(400).json({ error: 'Recording has expired and is no longer available.' });
+      if (!interview.recordingExpiresAt || new Date(interview.recordingExpiresAt) <= new Date()) return res.status(400).json({ error: 'Recording has expired and is no longer available.' });
+      if (interview.recordingUnlocked) return res.status(400).json({ error: 'Recording is already unlocked.' });
     } else return res.status(400).json({ error: 'Invalid payment type' });
 
     const razorpay = new Razorpay({ key_id: process.env.RAZORPAY_KEY_ID, key_secret: process.env.RAZORPAY_KEY_SECRET });
@@ -47,7 +48,7 @@ const verifyPayment = async (req, res) => {
       return res.json({ success: true });
     }
 
-    if (type === 'recording') {
+    if (type === 'recording' || type === 'recording_unlock') {
       const interview = await Interview.findById(interviewId);
       if (!interview) return res.status(404).json({ error: 'Interview not found' });
       if (String(interview.userId) !== String(req.user.id || req.user._id)) return res.status(403).json({ error: 'Unauthorized' });

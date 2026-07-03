@@ -24,6 +24,7 @@ const startCleanupCron = () => {
           await deleteRecording(interview.recordingPath);
           interview.recordingDeletedAt = new Date().toISOString();
           interview.recordingPath = null;
+          interview.recordingStatus = 'expired';
           await interview.save();
           console.log(`✅ Deleted recording for interview ${interview._id}`);
         } catch (err) {

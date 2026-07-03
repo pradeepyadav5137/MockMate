@@ -1,0 +1,289 @@
+/* ========================================
+   Recording Page Styles
+   ======================================== */
+
+/* Info Bar */
+.rec-info-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  padding: 16px 24px;
+  margin-bottom: 24px;
+  border: 1px solid rgba(20, 184, 166, 0.15);
+}
+
+.rec-info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Grid */
+.rec-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 480px) {
+  .rec-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Card */
+.rec-card {
+  padding: 20px;
+  border-radius: 14px;
+  transition: border-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.rec-card:hover {
+  border-color: rgba(20, 184, 166, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(20, 184, 166, 0.08);
+}
+
+.rec-card--expired {
+  opacity: 0.55;
+  pointer-events: auto;
+}
+
+.rec-card--expired:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+/* Card Header */
+.rec-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.rec-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.15), rgba(139, 92, 246, 0.15));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #14b8a6;
+  flex-shrink: 0;
+}
+
+.rec-card-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.rec-card-role {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #e2e8f0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rec-card-type {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Status Badges */
+.rec-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+}
+
+.rec-badge--ready {
+  background: rgba(16, 185, 129, 0.12);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.rec-badge--expired {
+  background: rgba(239, 68, 68, 0.1);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.15);
+}
+
+.rec-badge--pending {
+  background: rgba(251, 191, 36, 0.1);
+  color: #fcd34d;
+  border: 1px solid rgba(251, 191, 36, 0.15);
+}
+
+.rec-badge--none {
+  background: rgba(100, 116, 139, 0.1);
+  color: #94a3b8;
+  border: 1px solid rgba(100, 116, 139, 0.15);
+}
+
+/* Card Details */
+.rec-card-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.rec-detail {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.rec-detail--expired {
+  color: #f87171;
+}
+
+.rec-detail--warning {
+  color: #fbbf24;
+}
+
+.rec-detail--pro {
+  color: #a78bfa;
+  font-weight: 600;
+}
+
+/* Card Actions */
+.rec-card-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Buttons */
+.rec-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rec-btn--play {
+  background: linear-gradient(135deg, #14b8a6, #0d9488);
+  color: #fff;
+  box-shadow: 0 2px 12px rgba(20, 184, 166, 0.25);
+}
+
+.rec-btn--play:hover {
+  box-shadow: 0 4px 20px rgba(20, 184, 166, 0.4);
+  transform: translateY(-1px);
+}
+
+.rec-btn--playing {
+  background: linear-gradient(135deg, #0d9488, #0f766e);
+  animation: rec-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes rec-pulse {
+  0%, 100% { box-shadow: 0 2px 12px rgba(20, 184, 166, 0.25); }
+  50% { box-shadow: 0 2px 20px rgba(20, 184, 166, 0.5); }
+}
+
+.rec-btn--download {
+  background: rgba(139, 92, 246, 0.12);
+  color: #a78bfa;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.rec-btn--download:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.35);
+}
+
+.rec-btn--unlock {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+  box-shadow: 0 2px 12px rgba(245, 158, 11, 0.25);
+  flex: 1;
+  justify-content: center;
+  padding: 10px 20px;
+  font-size: 14px;
+}
+
+.rec-btn--unlock:hover:not(:disabled) {
+  box-shadow: 0 4px 24px rgba(245, 158, 11, 0.4);
+  transform: translateY(-1px);
+}
+
+.rec-btn--unlock:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Messages */
+.rec-expired-msg,
+.rec-pending-msg {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  width: 100%;
+}
+
+.rec-expired-msg {
+  color: #f87171;
+}
+
+.rec-pending-msg {
+  color: #fbbf24;
+}
+
+/* Spinner animation */
+.spin {
+  animation: spin 1.2s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .rec-info-bar {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .rec-card-actions {
+    flex-direction: column;
+  }
+  
+  .rec-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

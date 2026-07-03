@@ -112,12 +112,10 @@ const FeedbackPage = () => {
     queryFn: () => feedbackService.getTranscript(id).then((r) => r.data.transcript),
   });
 
-  // Fetch recording dynamically if unlocked
-  const isUnlocked = feedbackData?.interview?.recordingUnlocked || !!unlockedRecordingUrl;
-  const { data: recordingData, refetch: refetchRecording } = useQuery({
-    queryKey: ['recording', id],
-    queryFn: () => feedbackService.getRecording(id).then((r) => r.data.recording),
-    enabled: !!isUnlocked,
+  // refetch feedback data after recording unlock to get updated interview state
+  const { refetch: refetchFeedback } = useQuery({
+    queryKey: ['feedback', id],
+    enabled: false,
   });
 
   const handleUnlockRecording = async () => {
@@ -135,7 +133,7 @@ const FeedbackPage = () => {
         order_id: orderId,
         handler: async (response) => {
           try {
-            const verifyRes = await paymentService.verify({
+            await paymentService.verify({
               orderId: response.razorpay_order_id,
               paymentId: response.razorpay_payment_id,
               signature: response.razorpay_signature,
@@ -143,8 +141,9 @@ const FeedbackPage = () => {
               interviewId: id,
             });
             toast.success('Recording unlocked! 🎉');
-            setUnlockedRecordingUrl(verifyRes.data.downloadUrl);
-            refetchRecording();
+            const apiBase = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+            setUnlockedRecordingUrl(`${apiBase}/storage/recordings/${id}/stream?token=${encodeURIComponent(localStorage.getItem('aic_token') || '')}`);
+            refetchFeedback();
           } catch (err) {
             toast.error('Payment verification failed.');
           }
@@ -241,22 +240,107 @@ const FeedbackPage = () => {
         </div>
 
         {/* Recording Section */}
-        {(f.interview?.recordingPath || f.interview?.recordingPublicId) && (
+        {f.interview && (f.interview.recordingPath || f.interview.recordingStatus) && (
           <div className="recording-section glass-card animate-fade-in-up" style={{ padding: 24, marginTop: 24 }}>
             <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '0 0 16px 0', fontSize: 18, color: '#e2e8f0' }}>
               <Volume2 size={20} style={{ color: '#14b8a6' }} />
               Interview Audio Recording
             </h3>
-            <div className="recording-player-wrapper">
-              <p style={{ color: '#94a3b8', fontSize: 14, marginBottom: 12 }}>
-                Listen back to your practice session. Use this to analyze your pacing, voice clarity, and filler words.
-              </p>
-              <audio
-                controls
-                src={unlockedRecordingUrl || recordingData?.url || `${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/storage/recordings/${id}/download`}
-                style={{ width: '100%', marginTop: 8 }}
-              />
-            </div>
+
+            {(() => {
+              const isPro = f.interview.pricingTier === 'pro';
+              const isUnlocked = isPro || f.interview.recordingUnlocked || !!unlockedRecordingUrl;
+              const isExpired = f.interview.recordingDeletedAt || f.interview.recordingStatus === 'expired';
+              const hasFile = f.interview.recordingPath && !isExpired;
+              const apiBase = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
+              if (isExpired) {
+                return (
+                  <p style={{ color: '#f87171', fontSize: 14 }}>
+                    This recording has expired and been deleted after 24 hours.
+                  </p>
+                );
+              }
+
+              if (!hasFile) {
+                return (
+                  <p style={{ color: '#fbbf24', fontSize: 14 }}>
+                    Recording is still being processed. Please check back shortly.
+                  </p>
+                );
+              }
+
+              if (isUnlocked) {
+                return (
+                  <div className="recording-player-wrapper">
+                    <p style={{ color: '#94a3b8', fontSize: 14, marginBottom: 12 }}>
+                      {isPro ? (
+                        <span style={{ color: '#a78bfa', fontWeight: 600 }}>✨ Pro — Free recording access included</span>
+                      ) : (
+                        <span style={{ color: '#6ee7b7', fontWeight: 600 }}>✅ Recording unlocked</span>
+                      )}
+                      {' · '}Listen back to analyze your pacing, voice clarity, and filler words.
+                    </p>
+                    <audio
+                      controls
+                      src={unlockedRecordingUrl || `${apiBase}/storage/recordings/${id}/stream?token=${encodeURIComponent(localStorage.getItem('aic_token') || '')}`}
+                      style={{ width: '100%', marginTop: 8 }}
+                    />
+                    <div style={{ marginTop: 12 }}>
+                      <a
+                        href={`${apiBase}/storage/recordings/${id}/download`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-secondary"
+                        style={{ fontSize: 13, padding: '8px 16px' }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          const token = localStorage.getItem('aic_token');
+                          fetch(`${apiBase}/storage/recordings/${id}/download`, {
+                            headers: { Authorization: `Bearer ${token}` },
+                          }).then(r => r.blob()).then(blob => {
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `mockmate-${id}.webm`;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+                          }).catch(() => toast.error('Download failed'));
+                        }}
+                      >
+                        <Download size={14} style={{ marginRight: 4 }} /> Download Recording
+                      </a>
+                    </div>
+                  </div>
+                );
+              }
+
+              // Locked
+              return (
+                <div style={{ textAlign: 'center', padding: '16px 0' }}>
+                  <Lock size={32} style={{ color: '#f59e0b', marginBottom: 12 }} />
+                  <p style={{ color: '#94a3b8', fontSize: 14, marginBottom: 16 }}>
+                    Your recording is ready but locked. Unlock it to listen and download.
+                  </p>
+                  <button
+                    className="btn btn-primary"
+                    onClick={handleUnlockRecording}
+                    disabled={unlockLoading}
+                    style={{
+                      background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                      border: 'none',
+                      padding: '12px 24px',
+                      fontSize: 14,
+                      fontWeight: 600,
+                    }}
+                  >
+                    {unlockLoading ? 'Processing...' : '🔓 Unlock Recording — ₹9'}
+                  </button>
+                </div>
+              );
+            })()}
           </div>
         )}
 

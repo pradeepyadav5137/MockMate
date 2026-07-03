@@ -271,6 +271,7 @@ if (require.main === module) {
   cli.runApp(new WorkerOptions({
     agent: __filename,
     agentName: process.env.LIVEKIT_AGENT_NAME || 'alex-interviewer',
+    initializeProcessTimeout: 30000, // Allow up to 30s for imports & handshake (prevents timeout on slower VMs)
   }));
 }
 

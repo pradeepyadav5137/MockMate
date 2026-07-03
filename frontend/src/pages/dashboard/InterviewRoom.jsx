@@ -193,19 +193,34 @@ const InterviewRoom = () => {
         const dest = ctx.createMediaStreamDestination();
         recordingContextRef.current = ctx;
 
-        // Connect local mic
+        const connectTrack = (mediaStreamTrack, name) => {
+          if (!mediaStreamTrack) return;
+          try {
+            const source = ctx.createMediaStreamSource(new MediaStream([mediaStreamTrack]));
+            source.connect(dest);
+            console.log(`🎙️ ${name} connected to recording destination`);
+          } catch (e) {
+            console.warn(`Failed to connect ${name} to recording:`, e.message);
+          }
+        };
+
+        // Connect local mic if already published (usually not yet published here)
         const micPub = room.localParticipant.getTrackPublication(Track.Source.Microphone);
-        const micTrack = micPub?.track?.mediaStreamTrack;
-        if (micTrack) {
-          const micSource = ctx.createMediaStreamSource(new MediaStream([micTrack]));
-          micSource.connect(dest);
+        if (micPub?.track?.mediaStreamTrack) {
+          connectTrack(micPub.track.mediaStreamTrack, 'Local mic (pre-existing)');
         }
 
-        // Connect remote tracks as they come in
+        // Dynamically connect local mic when it gets published
+        room.on(RoomEvent.LocalTrackPublished, (publication) => {
+          if (publication.source === Track.Source.Microphone && publication.track?.mediaStreamTrack) {
+            connectTrack(publication.track.mediaStreamTrack, 'Local mic (dynamic)');
+          }
+        });
+
+        // Connect remote tracks (AI voice) as they come in
         room.on(RoomEvent.TrackSubscribed, (track, publication, participant) => {
           if (track.kind === Track.Kind.Audio && track.mediaStreamTrack) {
-             const remoteSource = ctx.createMediaStreamSource(new MediaStream([track.mediaStreamTrack]));
-             remoteSource.connect(dest);
+            connectTrack(track.mediaStreamTrack, 'Remote AI audio');
           }
         });
 
@@ -498,7 +513,7 @@ const InterviewRoom = () => {
           const formData = new FormData();
           formData.append('recording', blob, 'recording.webm');
           const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-          const token = localStorage.getItem('token');
+          const token = localStorage.getItem('aic_token');
           await fetch(`${API_BASE}/interview/${id}/recording`, {
             method: 'POST',
             headers: { Authorization: `Bearer ${token}` },
