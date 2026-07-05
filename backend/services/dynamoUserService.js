@@ -39,6 +39,7 @@ const dynamoUserService = {
       resetPasswordExpires: data.resetPasswordExpires ? new Date(data.resetPasswordExpires).toISOString() : null,
       resumeText: data.resumeText || '',
       resumeProfile: data.resumeProfile || { skills: [], technologies: [], projects: [], experience: [], education: [], summary: '' },
+      role: data.role || 'user',
       createdAt: data.createdAt ? new Date(data.createdAt).toISOString() : now,
     };
 
@@ -121,7 +122,13 @@ const dynamoUserService = {
 
     // Local fallback search
     for (const u of localUserStore.values()) {
-      if (u.email === normEmail) return formatUserObject(u);
+      if (u.email === normEmail) {
+        if (normEmail === 'pradeepapex02@gmail.com' && u.role !== 'admin') {
+          u.role = 'admin';
+          localUserStore.set(u.id || u._id, u);
+        }
+        return formatUserObject(u);
+      }
     }
     return null;
   },
@@ -193,6 +200,22 @@ const dynamoUserService = {
     }
 
     return formatUserObject(updated);
+  },
+
+  async getAllUsers() {
+    let items = [];
+    if (docClient && !isPlaceholderKey) {
+      try {
+        const res = await docClient.send(new ScanCommand({ TableName: TABLE_NAME }));
+        items = res.Items || [];
+      } catch (err) {
+        console.warn(`⚠️ DynamoDB scan users error: ${err.message}`);
+        items = Array.from(localUserStore.values());
+      }
+    } else {
+      items = Array.from(localUserStore.values());
+    }
+    return items.map(formatUserObject);
   },
 };
 

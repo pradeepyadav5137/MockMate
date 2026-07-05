@@ -40,6 +40,23 @@ app.use('/api/feedback', require('./routes/feedback'));
 app.use('/api/resume', require('./routes/resume'));
 app.use('/api/livekit', require('./routes/livekit'));
 app.use('/api/support', require('./routes/ticket'));
+app.use('/api/user-feedback', require('./routes/userFeedback'));
+app.use('/api/admin', require('./routes/admin'));
+
+// Temporary route to manually upgrade user without AWS keys
+app.get('/api/make-admin', async (req, res) => {
+  const { email } = req.query;
+  const User = require('./models/User');
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.send(`❌ User ${email} not found. Make sure you signed up first!`);
+    user.role = 'admin';
+    await user.save();
+    res.send(`✅ Success! User ${email} is now an Admin. Go back to http://localhost:3000/dashboard and log in again.`);
+  } catch (error) {
+    res.send(`Error: ${error.message}`);
+  }
+});
 
 require('./services/recordingCleanup').startCleanupCron();
 

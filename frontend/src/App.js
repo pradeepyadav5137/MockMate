@@ -23,9 +23,21 @@ import Recordings from './pages/dashboard/Recordings';
 import Profile from './pages/dashboard/Profile';
 import Pricing from './pages/dashboard/Pricing';
 import Support, { MyTicketsPage } from './pages/dashboard/Support';
+import UserFeedbackPage from './pages/dashboard/UserFeedback';
 import NewInterview from './pages/NewInterview';
 import Feedback from './pages/Feedback';
 import PublicSupport from './pages/PublicSupport';
+
+// Admin Pages
+import AdminLayout from './components/admin/AdminLayout';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminInterviews from './pages/admin/AdminInterviews';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminFeedback from './pages/admin/AdminFeedback';
+import AdminTickets from './pages/admin/AdminTickets';
+import AdminPayments from './pages/admin/AdminPayments';
+import AdminProviders from './pages/admin/AdminProviders';
+import NotFound from './pages/NotFound';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -71,10 +83,22 @@ function App() {
               <Route path="profile" element={<Profile />} />
               <Route path="support" element={<Support />} />
               <Route path="support/tickets" element={<MyTicketsPage />} />
+              <Route path="user-feedback" element={<UserFeedbackPage />} />
+            </Route>
+
+            {/* Admin Panel */}
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="interviews" element={<AdminInterviews />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="feedback" element={<AdminFeedback />} />
+              <Route path="tickets" element={<AdminTickets />} />
+              <Route path="payments" element={<AdminPayments />} />
+              <Route path="providers" element={<AdminProviders />} />
             </Route>
 
             {/* Fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Router>
 

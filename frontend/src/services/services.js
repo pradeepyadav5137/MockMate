@@ -63,3 +63,12 @@ export const supportService = {
   getMyTickets: () => api.get('/support/my'),
   getTicket: (id) => api.get(`/support/${id}`),
 };
+
+export const userFeedbackService = {
+  submit: (data) => api.post('/user-feedback', data),
+  getMy: () => api.get('/user-feedback/my'),
+  check: (interviewId) => api.get(`/user-feedback/check/${interviewId}`),
+  getStats: () => api.get('/user-feedback/stats'),
+};
+
+export { adminService } from './adminService';

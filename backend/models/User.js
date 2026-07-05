@@ -65,7 +65,11 @@ const UserModel = {
   },
 
   async countDocuments() {
-    return 1;
+    return dynamoUserService.getAllUsers().then(users => users.length);
+  },
+
+  async findAll() {
+    return dynamoUserService.getAllUsers();
   },
 };
 

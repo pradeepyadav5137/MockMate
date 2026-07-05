@@ -1,25 +1,23 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
-  Home, Play, Clock, BarChart2, Mic, User, CreditCard, LogOut, LifeBuoy, Heart, X, ShieldCheck
+  LayoutDashboard, Users, MessageSquare, Ticket, CreditCard, Activity, LogOut, X, Home
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
-import './Sidebar.css';
+import '../dashboard/Sidebar.css';
 
-const navItems = [
-  { label: 'Dashboard', icon: Home, path: '/dashboard' },
-  { label: 'Start Interview', icon: Play, path: '/dashboard/start' },
-  { label: 'Interview History', icon: Clock, path: '/dashboard/history' },
-  { label: 'Feedback Reports', icon: BarChart2, path: '/dashboard/feedback' },
-  { label: 'Recordings', icon: Mic, path: '/dashboard/recordings' },
-  { label: 'Profile', icon: User, path: '/dashboard/profile' },
-  { label: 'Pricing', icon: CreditCard, path: '/dashboard/pricing' },
-  { label: 'Support', icon: LifeBuoy, path: '/dashboard/support' },
-  { label: 'Feedback', icon: Heart, path: '/dashboard/user-feedback' },
+const adminNavItems = [
+  { label: 'Admin Dashboard', icon: LayoutDashboard, path: '/admin' },
+  { label: 'Interviews', icon: Activity, path: '/admin/interviews' },
+  { label: 'Users', icon: Users, path: '/admin/users' },
+  { label: 'Feedback', icon: MessageSquare, path: '/admin/feedback' },
+  { label: 'Support Tickets', icon: Ticket, path: '/admin/tickets' },
+  { label: 'Payments', icon: CreditCard, path: '/admin/payments' },
+  { label: 'Provider Health', icon: Activity, path: '/admin/providers' },
 ];
 
-const Sidebar = ({ isOpen, onClose }) => {
+const AdminSidebar = ({ isOpen, onClose }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -36,13 +34,13 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   const initials = user?.name
     ? user.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
-    : 'AI';
+    : 'AD';
 
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
       {/* Logo */}
       <div className="sidebar-logo">
-        <img className="sidebar-logo-icon" src="/logo.png" alt="MockMate" />
+        <img className="sidebar-logo-icon" src="/logo.png" alt="MockMate Admin" />
         <button className="mobile-sidebar-close" onClick={onClose} aria-label="Close sidebar">
           <X size={20} />
         </button>
@@ -50,11 +48,11 @@ const Sidebar = ({ isOpen, onClose }) => {
 
       {/* Nav */}
       <nav className="sidebar-nav">
-        {navItems.map(({ label, icon: Icon, path }) => (
+        {adminNavItems.map(({ label, icon: Icon, path }) => (
           <NavLink
             key={path}
             to={path}
-            end={path === '/dashboard'}
+            end={path === '/admin'}
             onClick={handleLinkClick}
             className={({ isActive }) =>
               `sidebar-nav-item${isActive ? ' active' : ''}`
@@ -64,29 +62,26 @@ const Sidebar = ({ isOpen, onClose }) => {
             <span>{label}</span>
           </NavLink>
         ))}
-        {user?.role === 'admin' && (
-          <>
-            <div style={{ margin: '16px 0', borderTop: '1px solid rgba(255,255,255,0.05)' }}></div>
-            <NavLink
-              to="/admin"
-              onClick={handleLinkClick}
-              className="sidebar-nav-item"
-              style={{ color: 'var(--color-primary)' }}
-            >
-              <ShieldCheck size={17} className="nav-icon" />
-              <span>Admin Panel</span>
-            </NavLink>
-          </>
-        )}
+        
+        <div style={{ margin: '16px 0', borderTop: '1px solid rgba(255,255,255,0.05)' }}></div>
+        
+        <NavLink
+            to="/dashboard"
+            onClick={handleLinkClick}
+            className="sidebar-nav-item"
+          >
+            <Home size={17} className="nav-icon" />
+            <span>Back to App</span>
+        </NavLink>
       </nav>
 
       {/* User profile at bottom */}
       <div className="sidebar-bottom">
         <div className="sidebar-user">
-          <div className="sidebar-avatar">{initials}</div>
+          <div className="sidebar-avatar" style={{ background: 'var(--color-primary)' }}>{initials}</div>
           <div className="sidebar-user-info">
-            <span className="sidebar-user-name">{user?.name || 'User'}</span>
-            <span className="sidebar-user-plan">Free Plan</span>
+            <span className="sidebar-user-name">{user?.name || 'Admin'}</span>
+            <span className="sidebar-user-plan" style={{ color: 'var(--color-primary)' }}>Administrator</span>
           </div>
         </div>
         <button
@@ -102,4 +97,4 @@ const Sidebar = ({ isOpen, onClose }) => {
   );
 };
 
-export default Sidebar;
+export default AdminSidebar;
