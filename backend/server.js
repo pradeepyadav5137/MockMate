@@ -31,6 +31,7 @@ app.use('/api/storage/resumes', express.static(path.join(__dirname, 'storage', '
 
 app.use('/api/interview/create', rateLimit({ windowMs: 15 * 60 * 1000, max: 10 }));
 app.use('/api/payment', rateLimit({ windowMs: 15 * 60 * 1000, max: 20 }));
+app.use('/api/support/guest', rateLimit({ windowMs: 15 * 60 * 1000, max: 5, message: { success: false, message: 'Too many submissions. Please try again later.' } }));
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/interview', require('./routes/interview'));
@@ -38,6 +39,7 @@ app.use('/api/payment', require('./routes/payment'));
 app.use('/api/feedback', require('./routes/feedback'));
 app.use('/api/resume', require('./routes/resume'));
 app.use('/api/livekit', require('./routes/livekit'));
+app.use('/api/support', require('./routes/ticket'));
 
 require('./services/recordingCleanup').startCleanupCron();
 

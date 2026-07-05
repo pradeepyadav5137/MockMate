@@ -34,7 +34,7 @@ export const ForgotPassword = () => {
       <div className="auth-container">
         <Link to="/" className="auth-brand">
           <div className="auth-brand-icon">🎯</div>
-          <span>AI Interview Companion</span>
+          <span>MockMate</span>
         </Link>
 
         <div className="auth-card glass-card animate-fade-in-up">
@@ -114,7 +114,7 @@ export const ResetPassword = () => {
       <div className="auth-container">
         <Link to="/" className="auth-brand">
           <div className="auth-brand-icon">🎯</div>
-          <span>AI Interview Companion</span>
+          <span>MockMate</span>
         </Link>
         <div className="auth-card glass-card animate-fade-in-up">
           <div className="auth-card-header">

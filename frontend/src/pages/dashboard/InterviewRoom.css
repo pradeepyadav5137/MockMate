@@ -3,7 +3,7 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: radial-gradient(ellipse at 20% 20%, rgba(20,184,166,0.08) 0%, transparent 55%),
+  background: radial-gradient(ellipse at 20% 20%, rgba(17,153,138,0.05) 0%, transparent 55%),
               radial-gradient(ellipse at 80% 80%, rgba(139,92,246,0.08) 0%, transparent 55%),
               var(--color-bg);
   position: relative;
@@ -63,8 +63,8 @@
   align-items: center;
   gap: 7px;
   padding: 5px 14px;
-  background: rgba(20,184,166,0.12);
-  border: 1px solid rgba(20,184,166,0.25);
+  background: rgba(17,153,138,0.08);
+  border: 1px solid rgba(17,153,138,0.2);
   border-radius: 100px;
   font-size: 12px;
   font-weight: 500;
@@ -72,7 +72,7 @@
 }
 .ir-phase-dot {
   width: 7px; height: 7px;
-  background: #14b8a6;
+  background: var(--color-primary);
   border-radius: 50%;
   animation: pulse-glow 2s ease-in-out infinite;
   flex-shrink: 0;
@@ -156,7 +156,7 @@
   height: 1px;
   background: var(--color-border);
 }
-.ir-phase-step.done:not(:last-child)::after { background: rgba(20,184,166,0.4); }
+.ir-phase-step.done:not(:last-child)::after { background: rgba(17,153,138,0.3); }
 .ir-phase-step-dot {
   width: 14px; height: 14px;
   border-radius: 50%;
@@ -168,15 +168,15 @@
 }
 .ir-phase-step.active { color: #99f6e4; }
 .ir-phase-step.active .ir-phase-step-dot {
-  background: #14b8a6;
-  border-color: #14b8a6;
-  box-shadow: 0 0 12px rgba(20,184,166,0.5);
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 12px rgba(17,153,138,0.3);
 }
 .ir-phase-step.done .ir-phase-step-dot {
-  background: rgba(20,184,166,0.3);
-  border-color: rgba(20,184,166,0.5);
+  background: rgba(17,153,138,0.2);
+  border-color: rgba(17,153,138,0.3);
 }
-.ir-phase-step.done { color: rgba(20,184,166,0.6); }
+.ir-phase-step.done { color: rgba(17,153,138,0.4); }
 
 /* ─── Callers ────────────────────────────────────────────────── */
 .ir-callers {
@@ -215,8 +215,8 @@
   transition: transform 0.3s;
 }
 .ir-caller-avatar--ai .ir-avatar-inner {
-  background: linear-gradient(135deg, #0d9488, #14b8a6, #0891b2);
-  box-shadow: 0 0 40px rgba(20,184,166,0.2);
+  background: linear-gradient(135deg, var(--color-secondary), var(--color-primary), #0891b2);
+  box-shadow: 0 0 40px rgba(17,153,138,0.15);
 }
 .ir-caller-avatar--user .ir-avatar-inner {
   background: linear-gradient(135deg, #4f46e5, #7c3aed, #6366f1);
@@ -243,7 +243,7 @@
 .ir-ring {
   position: absolute;
   border-radius: 50%;
-  border: 2px solid rgba(20,184,166,0.35);
+  border: 2px solid rgba(17,153,138,0.25);
   animation: ir-ring-pulse 2s ease-out infinite;
   pointer-events: none;
 }
@@ -288,8 +288,8 @@
   transition: all 0.3s;
 }
 .ir-status-badge--speaking {
-  background: rgba(20,184,166,0.12);
-  border-color: rgba(20,184,166,0.3);
+  background: rgba(17,153,138,0.08);
+  border-color: rgba(17,153,138,0.2);
   color: #99f6e4;
 }
 .ir-status-badge--user {
@@ -449,8 +449,8 @@
   border-color: rgba(255,255,255,0.15);
 }
 .ir-ctrl-btn--active {
-  background: rgba(20,184,166,0.12);
-  border-color: rgba(20,184,166,0.3);
+  background: rgba(17,153,138,0.08);
+  border-color: rgba(17,153,138,0.2);
   color: #99f6e4;
 }
 .ir-ctrl-btn--danger {
@@ -560,8 +560,8 @@
   margin: 0;
 }
 .ir-msg--assistant .ir-msg-content {
-  background: rgba(20,184,166,0.08);
-  border-left: 2px solid rgba(20,184,166,0.4);
+  background: rgba(17,153,138,0.05);
+  border-left: 2px solid rgba(17,153,138,0.25);
 }
 .ir-msg--user .ir-msg-content {
   background: rgba(139,92,246,0.08);
@@ -585,8 +585,8 @@
 .ir-audio-status-card {
   max-width: 640px;
   width: 100%;
-  background: rgba(20, 184, 166, 0.04);
-  border: 1px solid rgba(20, 184, 166, 0.15);
+  background: rgba(17, 153, 138, 0.03);
+  border: 1px solid rgba(17, 153, 138, 0.12);
   border-radius: 16px;
   padding: 20px;
   text-align: center;
@@ -598,8 +598,8 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(20, 184, 166, 0.1);
-  border: 1px solid rgba(20, 184, 166, 0.3);
+  background: rgba(17, 153, 138, 0.08);
+  border: 1px solid rgba(17, 153, 138, 0.2);
   padding: 6px 16px;
   border-radius: 100px;
   font-size: 13px;

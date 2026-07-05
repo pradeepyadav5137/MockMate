@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
-  Home, Play, Clock, BarChart2, Mic, User, CreditCard, LogOut, Zap
+  Home, Play, Clock, BarChart2, Mic, User, CreditCard, LogOut, LifeBuoy, X
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -15,9 +15,10 @@ const navItems = [
   { label: 'Recordings', icon: Mic, path: '/dashboard/recordings' },
   { label: 'Profile', icon: User, path: '/dashboard/profile' },
   { label: 'Pricing', icon: CreditCard, path: '/dashboard/pricing' },
+  { label: 'Support', icon: LifeBuoy, path: '/dashboard/support' },
 ];
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -25,6 +26,11 @@ const Sidebar = () => {
     logout();
     toast.success('Logged out. See you soon! 👋');
     navigate('/login');
+    if (onClose) onClose();
+  };
+
+  const handleLinkClick = () => {
+    if (onClose) onClose();
   };
 
   const initials = user?.name
@@ -32,18 +38,14 @@ const Sidebar = () => {
     : 'AI';
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
       {/* Logo */}
       <div className="sidebar-logo">
-        <img className="sidebar-logo-icon" src="/logo.png" alt="AI Interview Companion" />
+        <img className="sidebar-logo-icon" src="/logo.png" alt="MockMate" />
+        <button className="mobile-sidebar-close" onClick={onClose} aria-label="Close sidebar">
+          <X size={20} />
+        </button>
       </div>
-
-      {/* Plan badge */}
-      {user?.activeDayPass && (
-        <div className="sidebar-plan-badge">
-          <Zap size={12} /> Day Pass Active
-        </div>
-      )}
 
       {/* Nav */}
       <nav className="sidebar-nav">
@@ -52,6 +54,7 @@ const Sidebar = () => {
             key={path}
             to={path}
             end={path === '/dashboard'}
+            onClick={handleLinkClick}
             className={({ isActive }) =>
               `sidebar-nav-item${isActive ? ' active' : ''}`
             }
@@ -68,7 +71,7 @@ const Sidebar = () => {
           <div className="sidebar-avatar">{initials}</div>
           <div className="sidebar-user-info">
             <span className="sidebar-user-name">{user?.name || 'User'}</span>
-            <span className="sidebar-user-plan">{user?.activeDayPass ? 'Day Pass Active' : 'Free Plan'}</span>
+            <span className="sidebar-user-plan">Free Plan</span>
           </div>
         </div>
         <button

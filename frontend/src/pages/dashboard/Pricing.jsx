@@ -67,7 +67,7 @@ const Pricing = () => (
         <div className="pricing-card glass-card" style={{ transform: 'scale(1.02)' }}>
           <div className="pricing-card-header">
             <div className="plan-name">Basic Plan</div>
-            <div className="plan-price">₹9 <span className="plan-price-note">per day</span></div>
+            <div className="plan-price">₹9 <span className="plan-price-note">/interview</span></div>
             <div className="plan-desc">Perfect for a single, focused practice session</div>
           </div>
 
@@ -81,7 +81,6 @@ const Pricing = () => (
               { text: 'Voice recording (24h)', ok: true },
               { text: 'Detailed PDF report', ok: false },
               { text: 'Learning roadmap', ok: false },
-              { text: 'Permanent storage (+₹9)', ok: true },
             ].map((f) => (
               <li key={f.text} className={f.ok ? 'feature-ok' : 'feature-no'}>
                 {f.ok ? <Check size={13} /> : <span>✗</span>}
@@ -103,8 +102,8 @@ const Pricing = () => (
 
           <div className="pricing-card-header">
             <div className="plan-name">Pro Plan</div>
-            <div className="plan-price">₹19 <span className="plan-price-note">per day</span></div>
-            <div className="plan-desc">Unlimited 50-minute interviews with free recording</div>
+            <div className="plan-price">₹19 <span className="plan-price-note">/interview</span></div>
+            <div className="plan-desc">Full 50-minute interview session with free recording</div>
           </div>
 
           <ul className="plan-features">
@@ -117,7 +116,6 @@ const Pricing = () => (
               { text: 'Voice recording (Free)', ok: true },
               { text: 'PDF feedback report', ok: true },
               { text: 'Learning roadmap', ok: true },
-              { text: 'Permanent storage (+₹9)', ok: true },
             ].map((f) => (
               <li key={f.text} className={f.ok ? 'feature-ok' : 'feature-no'}>
                 {f.ok ? <Check size={13} /> : <span>✗</span>}

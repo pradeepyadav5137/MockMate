@@ -1,11 +1,26 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { User, Mail, Shield, CheckCircle, AlertTriangle } from 'lucide-react';
+import {
+  User, Mail, Shield, CheckCircle, AlertTriangle, Calendar,
+  CreditCard, LifeBuoy, Key, Globe
+} from 'lucide-react';
 import '../../styles/globals.css';
 import '../dashboard/Dashboard.css';
+import './Profile.css';
 
 const Profile = () => {
   const { user } = useAuth();
+
+  const joinedDate = user?.createdAt
+    ? new Date(user.createdAt).toLocaleDateString('en-IN', {
+        day: 'numeric', month: 'long', year: 'numeric',
+      })
+    : 'Recently';
+
+  const initials = user?.name
+    ? user.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
+    : 'U';
 
   return (
     <div>
@@ -15,49 +30,98 @@ const Profile = () => {
       </div>
 
       <div className="page-content">
-        <div className="glass-card animate-fade-in-up" style={{ padding: '32px', maxWidth: '600px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '32px' }}>
-            <div style={{ 
-              width: '80px', height: '80px', borderRadius: '50%', 
-              background: 'rgba(20, 184, 166, 0.1)', border: '2px solid rgba(20, 184, 166, 0.3)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '32px', color: '#14b8a6', fontWeight: '600'
-            }}>
-              {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
-            </div>
-            <div>
-              <h2 style={{ fontSize: '24px', margin: '0 0 4px 0', color: '#f8fafc' }}>{user?.name || 'User Name'}</h2>
-              <p style={{ margin: 0, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Mail size={14} /> {user?.email || 'user@email.com'}
-              </p>
-            </div>
-          </div>
+        {/* Two-column layout */}
+        <div className="profile-grid animate-fade-in-up">
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <h3 style={{ fontSize: '16px', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '8px', color: '#e2e8f0' }}>
-                <Shield size={18} style={{ color: '#8b5cf6' }} /> Account Status
-              </h3>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ color: '#94a3b8' }}>Email Verification</span>
+          {/* Left Column — User Card */}
+          <div className="profile-user-card glass-card">
+            <div className="profile-avatar-section">
+              <div className="profile-avatar">{initials}</div>
+              <div className="profile-user-details">
+                <h2 className="profile-name">{user?.name || 'User Name'}</h2>
+                <p className="profile-email">
+                  <Mail size={14} />
+                  {user?.email || 'user@email.com'}
+                </p>
+                <p className="profile-joined">
+                  <Calendar size={13} />
+                  Joined {joinedDate}
+                </p>
+              </div>
+            </div>
+
+            {/* Account Info Items */}
+            <div className="profile-info-list">
+              <div className="profile-info-item">
+                <div className="profile-info-label">
+                  <Shield size={16} style={{ color: '#8b5cf6' }} />
+                  <span>Email Verification</span>
+                </div>
                 {user?.isVerified ? (
-                  <span className="badge badge-success"><CheckCircle size={12} style={{ marginRight: 4 }} /> Verified</span>
+                  <span className="badge badge-success">
+                    <CheckCircle size={12} style={{ marginRight: 4 }} /> Verified
+                  </span>
                 ) : (
-                  <span className="badge badge-warning"><AlertTriangle size={12} style={{ marginRight: 4 }} /> Unverified</span>
+                  <span className="badge badge-warning">
+                    <AlertTriangle size={12} style={{ marginRight: 4 }} /> Unverified
+                  </span>
                 )}
               </div>
-            </div>
 
-            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-              <h3 style={{ fontSize: '16px', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '8px', color: '#e2e8f0' }}>
-                <User size={18} style={{ color: '#f59e0b' }} /> Subscription Plan
-              </h3>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ color: '#94a3b8' }}>Current Plan</span>
-                <span className="badge badge-primary">{user?.activeDayPass ? 'Day Pass Active' : 'Free Plan'}</span>
+              <div className="profile-info-item">
+                <div className="profile-info-label">
+                  <Key size={16} style={{ color: '#06b6d4' }} />
+                  <span>Auth Method</span>
+                </div>
+                <span className="badge badge-info">
+                  {user?.googleId ? (
+                    <><Globe size={12} style={{ marginRight: 4 }} /> Google</>
+                  ) : (
+                    <>Email & Password</>
+                  )}
+                </span>
               </div>
             </div>
           </div>
+
+          {/* Right Column — Plan + Quick Actions */}
+          <div className="profile-right-col">
+            {/* Subscription Card */}
+            <div className="profile-plan-card glass-card">
+              <div className="profile-plan-header">
+                <div className="profile-plan-icon">
+                  <CreditCard size={22} />
+                </div>
+                <div>
+                  <h3 className="profile-plan-title">Subscription Plan</h3>
+                  <p className="profile-plan-desc">Your current plan and usage</p>
+                </div>
+              </div>
+
+              <div className="profile-plan-body">
+                <div className="profile-info-item">
+                  <div className="profile-info-label">
+                    <CreditCard size={16} style={{ color: '#f59e0b' }} />
+                    <span>Current Plan</span>
+                  </div>
+                  <span className="badge badge-primary">Free Plan</span>
+                </div>
+                <div className="profile-info-item">
+                  <div className="profile-info-label">
+                    <Calendar size={16} style={{ color: '#10b981' }} />
+                    <span>Daily Interviews</span>
+                  </div>
+                  <span style={{ color: 'var(--color-text-secondary)', fontSize: '14px' }}>1 / day</span>
+                </div>
+              </div>
+
+              <Link to="/dashboard/pricing" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', marginTop: '16px' }}>
+                <CreditCard size={15} /> Upgrade Plan
+              </Link>
+            </div>
+
+          </div>
+
         </div>
       </div>
     </div>

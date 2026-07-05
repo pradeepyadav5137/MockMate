@@ -125,21 +125,19 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* Plan banner for free users */}
-        {!user?.activeDayPass && (
-          <div className="plan-banner animate-fade-in-up">
-            <div className="plan-banner-content">
-              <span>₹19</span>
-              <div>
-                <strong>Free Plan</strong>
-                <span> - 1 interview per category/day, 30 min max. </span>
-              </div>
+        {/* Plan banner */}
+        <div className="plan-banner animate-fade-in-up">
+          <div className="plan-banner-content">
+            <span>₹9+</span>
+            <div>
+              <strong>Premium Sessions</strong>
+              <span> - Unlock longer durations (up to 50 min) and GPT-4o feedback.</span>
             </div>
-            <Link to="/dashboard/pricing" className="btn btn-primary btn-sm">
-              Buy Day Pass - ₹19
-            </Link>
           </div>
-        )}
+          <Link to="/dashboard/pricing" className="btn btn-primary btn-sm">
+            View Pricing
+          </Link>
+        </div>
 
         {/* Stat cards */}
         <div className="stats-grid">

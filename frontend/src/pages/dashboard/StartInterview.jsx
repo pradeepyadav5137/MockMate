@@ -100,8 +100,7 @@ const StartInterview = () => {
     maxSize: 5 * 1024 * 1024,
   });
 
-  const isPremiumDuration = config.duration > 30;
-  const needsUpgrade = isPremiumDuration; // Day Pass needed for 50-min sessions
+  const needsUpgrade = config.duration > 15; // 30-min and 50-min sessions require payment
 
   const handlePayment = async () => {
     if (!window.Razorpay) {
@@ -166,9 +165,9 @@ const StartInterview = () => {
       navigate(`/interview/${res.data.interviewId}/room`);
     } catch (err) {
       const message = err.response?.data?.error || err.response?.data?.message || 'Could not start interview.';
-      const canBuyDayPass = err.response?.status === 403 && /upgrade|pass|tier/i.test(message);
-      if (canBuyDayPass) {
-        toast.error('Free limit reached. Initiating upgrade...');
+      const canPay = err.response?.status === 403 && /upgrade|pass|tier|payment|limit/i.test(message);
+      if (canPay) {
+        toast.error('Session requires payment. Initiating checkout...');
         await handlePayment();
       } else {
         toast.error(message);
@@ -453,14 +452,14 @@ const StartInterview = () => {
                 <div className="upgrade-notice">
                   <Zap size={16} style={{ color: '#fcd34d', flexShrink: 0 }} />
                   <div>
-                    <strong style={{ color: '#fcd34d' }}>Day Pass Required</strong>
-                    <p>50-minute sessions require a ₹19 Day Pass. This unlocks unlimited interviews for the rest of today.</p>
+                    <strong style={{ color: '#fcd34d' }}>Payment Required</strong>
+                    <p>{config.duration}-minute sessions require a ₹{config.duration === 30 ? 9 : 19} payment for AI infrastructure cost.</p>
                     <div className="cost-breakdown">
-                      <div className="cost-item"><span>Voice AI (Deepgram + TTS)</span><span>₹8</span></div>
-                      <div className="cost-item"><span>AI Analysis (Groq)</span><span>₹4</span></div>
-                      <div className="cost-item"><span>Recording & Storage</span><span>₹3</span></div>
-                      <div className="cost-item"><span>Platform</span><span>₹4</span></div>
-                      <div className="cost-item cost-total"><span>You pay</span><span>₹19</span></div>
+                      <div className="cost-item"><span>Voice AI (LiveKit)</span><span>₹{config.duration === 30 ? 4 : 8}</span></div>
+                      <div className="cost-item"><span>AI Analysis (Groq)</span><span>₹{config.duration === 30 ? 2 : 4}</span></div>
+                      <div className="cost-item"><span>Recording Storage</span><span>₹{config.duration === 30 ? 1 : 3}</span></div>
+                      <div className="cost-item"><span>Platform & Support</span><span>₹{config.duration === 30 ? 2 : 4}</span></div>
+                      <div className="cost-item cost-total"><span>You pay</span><span>₹{config.duration === 30 ? 9 : 19}</span></div>
                     </div>
                     <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 8 }}>
                       "We keep pricing close to operational cost to help students prepare."
@@ -500,7 +499,7 @@ const StartInterview = () => {
                 {loading || paymentLoading ? (
                   <span className="spinner" />
                 ) : needsUpgrade ? (
-                  <><Zap size={16} /> Buy ₹19 Day Pass & Start</>
+                  <><Zap size={16} /> Pay ₹{config.duration === 30 ? 9 : 19} & Start</>
                 ) : (
                   <><Play size={16} /> Start Interview</>
                 )}

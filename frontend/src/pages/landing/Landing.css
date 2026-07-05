@@ -406,9 +406,9 @@
 /* Landing Pricing */
 .landing-pricing-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--space-xl);
-  max-width: 760px;
+  max-width: 1100px;
   margin: 0 auto;
 }
 
@@ -673,10 +673,53 @@
   .interview-flow-visual { grid-template-columns: 1fr; }
 }
 
+/* Mobile hamburger button */
+.mobile-hamburger-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--color-primary); /* Same color as primary button not white */
+  cursor: pointer;
+  padding: 4px;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.mobile-hamburger-btn:hover {
+  color: var(--color-primary-light);
+}
+
 @media (max-width: 768px) {
   .features-grid, .how-grid, .landing-pricing-grid, .testimonials-grid {
     grid-template-columns: 1fr;
   }
-  .nav-links { display: none; }
+  
+  .mobile-hamburger-btn {
+    display: flex;
+  }
+
+  .nav-links {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    gap: 16px;
+    padding: 16px 0 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    margin-top: 12px;
+  }
+
+  .nav-links.open {
+    display: flex;
+  }
+
+  .landing-nav-inner {
+    flex-wrap: wrap;
+  }
+
+  .nav-brand {
+    flex: 1;
+  }
+
   .hero-stats { gap: 20px; }
 }

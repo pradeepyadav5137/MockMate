@@ -54,3 +54,12 @@ export const paymentService = {
   verify: (data) => api.post('/payment/verify', data),
   getHistory: () => api.get('/payment/history'),
 };
+
+export const supportService = {
+  createTicket: (formData) => api.post('/support/create', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  createGuestTicket: (data) => api.post('/support/guest', data),
+  getMyTickets: () => api.get('/support/my'),
+  getTicket: (id) => api.get(`/support/${id}`),
+};

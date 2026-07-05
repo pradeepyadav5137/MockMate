@@ -22,8 +22,10 @@ import FeedbackList from './pages/dashboard/FeedbackList';
 import Recordings from './pages/dashboard/Recordings';
 import Profile from './pages/dashboard/Profile';
 import Pricing from './pages/dashboard/Pricing';
+import Support, { MyTicketsPage } from './pages/dashboard/Support';
 import NewInterview from './pages/NewInterview';
 import Feedback from './pages/Feedback';
+import PublicSupport from './pages/PublicSupport';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -49,6 +51,7 @@ function App() {
             <Route path="/verify-email/:token" element={<VerifyEmailToken />} />
             <Route path="/resend-verification" element={<ResendVerification />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/support" element={<PublicSupport />} />
 
             {/* AI Mock Interviews */}
             <Route path="/interview/new" element={<NewInterview />} />
@@ -66,6 +69,8 @@ function App() {
               <Route path="recordings" element={<Recordings />} />
               <Route path="pricing" element={<Pricing />} />
               <Route path="profile" element={<Profile />} />
+              <Route path="support" element={<Support />} />
+              <Route path="support/tickets" element={<MyTicketsPage />} />
             </Route>
 
             {/* Fallback */}
