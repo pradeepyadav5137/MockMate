@@ -326,7 +326,7 @@ const Recordings = () => {
           </div>
           <div className="rec-info-item">
             <CreditCard size={16} style={{ color: '#a78bfa' }} />
-            <span>Pro (₹19) = free access · Others = unlock for ₹9</span>
+            <span>Pro (₹29) = free access · Others = unlock for ₹9</span>
           </div>
           <div className="rec-info-item">
             <Clock size={16} style={{ color: '#fbbf24' }} />

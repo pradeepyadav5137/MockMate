@@ -120,7 +120,7 @@ const NewInterview = () => {
 
       <h2 className="text-2xl font-bold mb-6 text-gray-800">Select Plan</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-10">
-        {[{ id: 'free', title: 'Free', price: '₹0', time: '15 min' }, { id: 'basic', title: 'Basic', price: '₹9', time: '30 min' }, { id: 'pro', title: 'Pro', price: '₹19', time: '50 min' }].map((tier) => (
+        {[{ id: 'free', title: 'Free', price: '₹0', time: '15 min' }, { id: 'basic', title: 'Basic', price: '₹9', time: '30 min' }, { id: 'pro', title: 'Pro', price: '₹29', time: '50 min' }].map((tier) => (
           <button type="button" key={tier.id} onClick={() => handleTierSelect(tier.id)} className={`p-6 rounded-lg border-2 text-center cursor-pointer ${selectedTier === tier.id ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white hover:border-green-300'}`}>
             <h3 className="text-xl font-bold mb-2">{tier.title}</h3>
             <div className="text-3xl font-bold text-gray-800 mb-4">{tier.price}</div>

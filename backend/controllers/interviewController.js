@@ -10,7 +10,12 @@ const tierMinutes = { free: 15, basic: 30, pro: 50 };
 const validTypes = ['core_cs', 'dsa', 'system_design', 'hr', 'full_mix'];
 
 const getUserId = (req) => String(req.user?.id || req.user?._id || '');
-const isInternalRequest = (req) => req.headers['x-internal-key'] === process.env.JWT_SECRET;
+const isInternalRequest = (req) => {
+  if (req.isInternalRequest) return true;
+  const provided = req.headers['x-internal-key'];
+  const secret = process.env.AGENT_INTERNAL_SECRET;
+  return Boolean(secret && provided && provided === secret);
+};
 
 const createInterview = async (req, res) => {
   try {
@@ -30,7 +35,7 @@ const createInterview = async (req, res) => {
         return res.status(400).json({ error: 'Invalid pricing tier' });
       }
       if (interviewType === 'full_mix' && pricingTier !== 'pro') {
-        return res.status(400).json({ error: 'Full Mix interview requires Pro tier (Rs.19). It covers all 5 categories and needs 50 minutes.' });
+        return res.status(400).json({ error: 'Full Mix interview requires Pro tier (Rs.29). It covers all 5 categories and needs 50 minutes.' });
       }
       if (pricingTier === 'free') {
         const today = new Date().toISOString().split('T')[0];

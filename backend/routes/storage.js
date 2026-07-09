@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const Interview = require('../models/Interview');
 const User = require('../models/User');
 const { protect } = require('../middleware/auth');
+const storageService = require('../services/storageService');
 
 const router = express.Router();
 
@@ -49,6 +50,16 @@ router.get('/recordings/:interviewId/stream', protectWithQueryToken, async (req,
       return res.status(403).json({ error: 'Recording is locked. Unlock for ₹9 to access.' });
     }
 
+    // ── S3 Driver: redirect to presigned S3 url ───────────────────────────
+    if (storageService.DRIVER === 's3') {
+      const signed = await storageService.getRecordingStreamUrl(interview.recordingPath, interview._id);
+      if (!signed.success) {
+        return res.status(500).json({ error: `Failed to generate S3 stream URL: ${signed.error}` });
+      }
+      return res.redirect(signed.url);
+    }
+
+    // ── Local Driver: stream local file ──────────────────────────────────
     const filePath = path.resolve(interview.recordingPath);
     const fs = require('fs');
     if (!fs.existsSync(filePath)) {
@@ -106,6 +117,16 @@ router.get('/recordings/:interviewId/download', protect, async (req, res) => {
       return res.status(403).json({ error: 'Recording is locked. Unlock for ₹9 to access.' });
     }
 
+    // ── S3 Driver: redirect to presigned download S3 url ──────────────────
+    if (storageService.DRIVER === 's3') {
+      const signed = await storageService.getRecordingDownloadUrl(interview.recordingPath, interview._id);
+      if (!signed.success) {
+        return res.status(500).json({ error: `Failed to generate S3 download URL: ${signed.error}` });
+      }
+      return res.redirect(signed.url);
+    }
+
+    // ── Local Driver: trigger local download ─────────────────────────────
     const filePath = path.resolve(interview.recordingPath);
     const fs = require('fs');
     if (!fs.existsSync(filePath)) {

@@ -40,6 +40,7 @@ const dynamoUserService = {
       resumeText: data.resumeText || '',
       resumeProfile: data.resumeProfile || { skills: [], technologies: [], projects: [], experience: [], education: [], summary: '' },
       role: data.role || 'user',
+      status: data.status || 'active',
       createdAt: data.createdAt ? new Date(data.createdAt).toISOString() : now,
     };
 
@@ -123,10 +124,6 @@ const dynamoUserService = {
     // Local fallback search
     for (const u of localUserStore.values()) {
       if (u.email === normEmail) {
-        if (normEmail === 'pradeepapex02@gmail.com' && u.role !== 'admin') {
-          u.role = 'admin';
-          localUserStore.set(u.id || u._id, u);
-        }
         return formatUserObject(u);
       }
     }

@@ -28,7 +28,7 @@ const HOW_IT_WORKS = [
 const TESTIMONIALS = [
   { name: 'Priya Sharma', role: 'SDE-1 @ Flipkart', text: "I was terrified of technical interviews. After 3 sessions with this AI, I went into my Flipkart interview feeling genuinely prepared.", avatar: 'PS' },
   { name: 'Rohan Mehta', role: 'Full Stack @ Razorpay', text: "The AI caught that I wasn't explaining trade-offs in my system design answers. That insight alone changed how I interview.", avatar: 'RM' },
-  { name: 'Ananya Patel', role: 'ML Engineer @ Swiggy', text: "₹19 for a full AI interview with detailed feedback? Cheaper than one coaching call. Absolutely worth it.", avatar: 'AP' },
+  { name: 'Ananya Patel', role: 'ML Engineer @ Swiggy', text: "₹29 for a full AI interview with detailed feedback? Cheaper than one coaching call. Absolutely worth it.", avatar: 'AP' },
 ];
 
 const FAQS = [
@@ -92,7 +92,7 @@ const Landing = () => {
         <div className="hero-orb hero-orb-1" /><div className="hero-orb hero-orb-2" /><div className="hero-grid" />
       </div>
       <div className="container hero-content">
-        <div className="hero-badge animate-fade-in"><Zap size={13} /> AI-Powered · Voice Interview · ₹19</div>
+        <div className="hero-badge animate-fade-in"><Zap size={13} /> AI-Powered · Voice Interview · ₹29</div>
         <h1 className="hero-headline animate-fade-in-up">Practice Interviews with a<br /><span className="gradient-text">Friendly Senior Engineer</span><br />— Powered by AI</h1>
         <p className="hero-subtitle animate-fade-in-up animate-delay-1">Stop practicing alone. Talk to an AI that asks smart questions based on <em>your</em> resume, adapts to your answers, encourages you when you're stuck, and gives you detailed feedback.</p>
         <div className="hero-ctas animate-fade-in-up animate-delay-2">
@@ -100,7 +100,7 @@ const Landing = () => {
           <a href="#how-it-works" className="btn btn-secondary btn-lg"><Play size={16} /> See How It Works</a>
         </div>
         <div className="hero-stats animate-fade-in-up animate-delay-3">
-          {[['1 Free', 'Interview Daily'], ['₹19', 'Premium Interview'], ['Llama 3', 'Powered AI'], ['7 Roles', 'Supported']].map(([v, l]) => (
+          {[['1 Free', 'Interview Daily'], ['₹29', 'Premium Interview'], ['Llama 3', 'Powered AI'], ['7 Roles', 'Supported']].map(([v, l]) => (
             <div key={l} className="hero-stat"><span className="hero-stat-value">{v}</span><span className="hero-stat-label">{l}</span></div>
           ))}
         </div>
@@ -212,7 +212,7 @@ const Landing = () => {
           <div className="landing-pricing-card landing-pricing-featured glass-card">
             <div className="featured-tag"><Zap size={12} /> Best Value</div>
             <h3>Pro Plan</h3>
-            <div className="landing-price">₹19 <span style={{ fontSize: 13, color: '#94a3b8' }}>/interview</span></div>
+            <div className="landing-price">₹29 <span style={{ fontSize: 13, color: '#94a3b8' }}>/interview</span></div>
             <ul className="landing-features">
               {['50 minutes duration', 'Groq AI interviewer', 'Resume-personalized questions', 'Detailed AI feedback report', 'Full conversation transcript', 'Voice recording (24h)', 'PDF feedback report', 'Learning roadmap'].map(f => (
                 <li key={f}><CheckCircle size={13} /> {f}</li>
@@ -223,7 +223,7 @@ const Landing = () => {
             </Link>
             <div className="cost-mini">
               <p>Infrastructure cost breakdown:</p>
-              {[['Voice AI (LiveKit)', 8], ['AI Analysis (Groq)', 4], ['Recording Storage', 3], ['Platform & Support', 4]].map(([l, c]) => (
+              {[['Voice AI (LiveKit)', 12], ['AI Analysis (Groq)', 6], ['Recording Storage', 5], ['Platform & Support', 6]].map(([l, c]) => (
                 <div key={l} className="cost-mini-row"><span>{l}</span><span>₹{c}</span></div>
               ))}
             </div>

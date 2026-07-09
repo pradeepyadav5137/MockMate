@@ -7,10 +7,10 @@ import '../../styles/globals.css';
 import './Pricing.css';
 
 const COST_BREAKDOWN = [
-  { label: 'Voice AI (LiveKit)', cost: 8 },
-  { label: 'AI Analysis (Groq)', cost: 4 },
-  { label: 'Recording Storage', cost: 3 },
-  { label: 'Platform & Support', cost: 4 },
+  { label: 'Voice AI (LiveKit)', cost: 12 },
+  { label: 'AI Analysis (Groq)', cost: 6 },
+  { label: 'Recording Storage', cost: 5 },
+  { label: 'Platform & Support', cost: 6 },
 ];
 
 const Pricing = () => (
@@ -102,7 +102,7 @@ const Pricing = () => (
 
           <div className="pricing-card-header">
             <div className="plan-name">Pro Plan</div>
-            <div className="plan-price">₹19 <span className="plan-price-note">/interview</span></div>
+            <div className="plan-price">₹29 <span className="plan-price-note">/interview</span></div>
             <div className="plan-desc">Full 50-minute interview session with free recording</div>
           </div>
 
@@ -134,7 +134,7 @@ const Pricing = () => (
       <div className="cost-transparency glass-card animate-fade-in-up">
         <h2 className="section-title" style={{ marginBottom: 8 }}>
           <Info size={16} style={{ display: 'inline', marginRight: 8, verticalAlign: 'middle' }} />
-          Why does it cost ₹19?
+          Why does it cost ₹29?
         </h2>
         <p style={{ color: '#94a3b8', fontSize: 14, marginBottom: 24 }}>
           Every rupee you pay goes directly to running the AI infrastructure for your interview.
@@ -158,17 +158,17 @@ const Pricing = () => (
           ))}
           <div className="cost-bar-total">
             <span>Infrastructure Cost</span>
-            <span>₹14</span>
+            <span>₹23</span>
           </div>
           <div className="cost-bar-total cost-bar-user">
             <span>You Pay</span>
-            <span style={{ color: '#99f6e4' }}>₹19</span>
+            <span style={{ color: '#99f6e4' }}>₹29</span>
           </div>
         </div>
 
         <div className="cost-note">
           <Brain size={14} />
-          The ₹5 difference funds platform maintenance and helps us keep pricing affordable for everyone.
+          The ₹6 difference funds platform maintenance and helps us keep pricing affordable for everyone.
         </div>
       </div>
     </div>

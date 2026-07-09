@@ -70,7 +70,7 @@ const CARTESIA_VOICES = {
   'us-neutral': '794f9389-aac1-45b6-b726-9d9369183238',
 };
 
-const apiBaseUrl = `http://localhost:${process.env.PORT || 5000}/api`;
+const apiBaseUrl = process.env.INTERNAL_API_URL || `http://localhost:${process.env.PORT || 5000}/api`;
 
 const extractText = (item) => {
   if (!item) return '';
@@ -98,7 +98,7 @@ const saveTranscriptTurn = async (interviewId, speaker, text) => {
     await axios.post(
       `${apiBaseUrl}/interview/${interviewId}/transcript`,
       { speaker, text: cleanText },
-      { headers: { 'x-internal-key': process.env.JWT_SECRET } }
+      { headers: { 'x-internal-key': process.env.AGENT_INTERNAL_SECRET } }
     );
   } catch (err) {
     console.error(`[agent] Failed to save ${speaker} transcript:`, err.message);
@@ -202,7 +202,7 @@ const agent = defineAgent({
             endsAt: new Date(endsAtMs).toISOString(),
             hardEndsAt: new Date(hardEndsAtMs).toISOString(),
           },
-          { headers: { 'x-internal-key': process.env.JWT_SECRET } }
+          { headers: { 'x-internal-key': process.env.AGENT_INTERNAL_SECRET } }
         ).catch(e => console.error('[agent] Sync timing failed:', e.message));
       }
 
@@ -297,7 +297,7 @@ const agent = defineAgent({
                 await axios.post(
                   `${apiBaseUrl}/interview/${interviewId}/end`,
                   { reason: 'normal_closing' },
-                  { headers: { 'x-internal-key': process.env.JWT_SECRET } }
+                  { headers: { 'x-internal-key': process.env.AGENT_INTERNAL_SECRET } }
                 ).catch((e) => console.error('[agent] End notify failed:', e.message));
               }
               await session.close().catch(() => {});
@@ -356,7 +356,7 @@ const agent = defineAgent({
             await axios.post(
               `${apiBaseUrl}/interview/${interviewId}/end`,
               { reason: 'time_expired' },
-              { headers: { 'x-internal-key': process.env.JWT_SECRET } }
+              { headers: { 'x-internal-key': process.env.AGENT_INTERNAL_SECRET } }
             ).catch((e) => console.error('[agent] End notify failed:', e.message));
           }
           await session.close().catch(() => {});

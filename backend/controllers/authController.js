@@ -4,9 +4,11 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const emailService = require('../services/emailService');
 
-const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET || 'dev_secret', {
-  expiresIn: process.env.JWT_EXPIRE || '7d',
-});
+const generateToken = (id) => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error('JWT_SECRET is not configured — cannot sign tokens');
+  return jwt.sign({ id }, secret, { expiresIn: process.env.JWT_EXPIRE || '7d' });
+};
 
 const createVerificationToken = () => crypto.randomBytes(32).toString('hex');
 
@@ -107,8 +109,11 @@ const forgotPassword = async (req, res) => {
 
 const resetPassword = async (req, res) => {
   try {
-    const user = await User.findOne({ resetPasswordToken: req.params.token, resetPasswordExpires: { $gt: new Date() } });
+    const user = await User.findOne({ resetPasswordToken: req.params.token });
     if (!user) return res.status(400).json({ message: 'Reset link is invalid or expired' });
+    if (user.resetPasswordExpires && new Date(user.resetPasswordExpires) < new Date()) {
+      return res.status(400).json({ message: 'Reset link is invalid or expired' });
+    }
     user.password = await bcrypt.hash(req.body.password, 10);
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;

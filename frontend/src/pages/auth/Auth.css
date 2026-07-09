@@ -207,3 +207,21 @@
   font-size: 12px;
   color: var(--color-text-muted);
 }
+
+.google-btn {
+  background: white;
+  color: #333;
+  border: 1px solid #ddd;
+  gap: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.google-btn:hover {
+  background: #f8f8f8;
+  border-color: #ccc;
+}

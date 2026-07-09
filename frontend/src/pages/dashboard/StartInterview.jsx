@@ -36,7 +36,7 @@ const DIFFICULTIES = [
 const DURATIONS = [
   { value: 15, label: '15 min', note: 'Free', isPremium: false, tier: 'free' },
   { value: 30, label: '30 min', note: 'Basic · ₹9', isPremium: true, tier: 'basic' },
-  { value: 50, label: '50 min', note: 'Pro · ₹19', isPremium: true, tier: 'pro' },
+  { value: 50, label: '50 min', note: 'Pro · ₹29', isPremium: true, tier: 'pro' },
 ];
 
 const VOICE_ACCENTS = [
@@ -485,13 +485,13 @@ const StartInterview = () => {
                   <Zap size={16} style={{ color: '#fcd34d', flexShrink: 0 }} />
                   <div>
                     <strong style={{ color: '#fcd34d' }}>Payment Required</strong>
-                    <p>{config.duration}-minute sessions require a ₹{config.duration === 30 ? 9 : 19} payment for AI infrastructure cost.</p>
+                    <p>{config.duration}-minute sessions require a ₹{config.duration === 30 ? 9 : 29} payment for AI infrastructure cost.</p>
                     <div className="cost-breakdown">
-                      <div className="cost-item"><span>Voice AI (LiveKit)</span><span>₹{config.duration === 30 ? 4 : 8}</span></div>
-                      <div className="cost-item"><span>AI Analysis (Groq)</span><span>₹{config.duration === 30 ? 2 : 4}</span></div>
-                      <div className="cost-item"><span>Recording Storage</span><span>₹{config.duration === 30 ? 1 : 3}</span></div>
-                      <div className="cost-item"><span>Platform & Support</span><span>₹{config.duration === 30 ? 2 : 4}</span></div>
-                      <div className="cost-item cost-total"><span>You pay</span><span>₹{config.duration === 30 ? 9 : 19}</span></div>
+                      <div className="cost-item"><span>Voice AI (LiveKit)</span><span>₹{config.duration === 30 ? 4 : 12}</span></div>
+                      <div className="cost-item"><span>AI Analysis (Groq)</span><span>₹{config.duration === 30 ? 2 : 6}</span></div>
+                      <div className="cost-item"><span>Recording Storage</span><span>₹{config.duration === 30 ? 1 : 5}</span></div>
+                      <div className="cost-item"><span>Platform & Support</span><span>₹{config.duration === 30 ? 2 : 6}</span></div>
+                      <div className="cost-item cost-total"><span>You pay</span><span>₹{config.duration === 30 ? 9 : 29}</span></div>
                     </div>
                     <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 8 }}>
                       "We keep pricing close to operational cost to help students prepare."
@@ -531,7 +531,7 @@ const StartInterview = () => {
                 {loading || paymentLoading ? (
                   <span className="spinner" />
                 ) : needsUpgrade ? (
-                  <><Zap size={16} /> Pay ₹{config.duration === 30 ? 9 : 19} & Start</>
+                  <><Zap size={16} /> Pay ₹{config.duration === 30 ? 9 : 29} & Start</>
                 ) : (
                   <><Play size={16} /> Start Interview</>
                 )}
