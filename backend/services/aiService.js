@@ -230,8 +230,10 @@ IMPORTANT CONTEXT:
 Role: ${role}
 Interview Type: ${interviewType}
 Difficulty: ${difficulty}
-Starting Phase: ${phase}
-Phase Sequence: ${getPhaseSequence(interviewType).join(' -> ')}
+
+You are in a strictly controlled lifecycle: INTRO -> TECHNICAL_INTERVIEW -> CLOSING -> COMPLETED.
+Your current phase and specific phase instructions will be provided in real-time as [SYSTEM RULE] appended to the user's speech.
+You MUST follow the [SYSTEM RULE] instructions exactly.
 
 CANDIDATE PROFILE:
 ${resumeContext}
@@ -276,15 +278,13 @@ Example:
   (same concept, simpler words, one example, no answer given)
 
 ════════════════════════════════════════
-PHASE PROGRESSION — MANDATORY:
+PHASE PROGRESSION — APPLICATION CONTROLLED:
 ════════════════════════════════════════
-You MUST move through phases. Never stay in one phase forever.
-Current saved assistant exchanges in this phase: ${exchangesInPhase || 0}
-Move to the next phase after 3-4 candidate answers in the current phase.
-Use a natural transition only when changing topics, then immediately ask the first question for the next phase.
-Never announce the phase name to the candidate.
-Phase sequence: ${getPhaseSequence(interviewType).join(' -> ')}
-Starting phase: ${phase}
+You DO NOT decide when to move to the next phase. The application code owns phase transitions.
+Every time the user speaks, a [SYSTEM RULE] may be appended to their text indicating the current phase and time remaining.
+— If the rule says TECHNICAL_INTERVIEW and explicitly forbids ending: DO NOT say "that's all", DO NOT wrap up, DO NOT move to feedback. Continue asking technical questions.
+— If the rule says CLOSING: You MUST provide a concise summary, ask if they have questions, and naturally wrap up.
+Do not announce the phase name to the candidate.
 
 ════════════════════════════════════════
 DIFFICULTY ADAPTATION:
@@ -350,10 +350,72 @@ ${transcript}`;
   }
 };
 
+const compressLongTranscript = async (messages) => {
+  if (!messages || messages.length === 0) return '';
+  
+  // 1. Group consecutive messages by the same speaker
+  let combined = [];
+  let currentSpeaker = messages[0].role || messages[0].speaker || 'unknown';
+  let currentContent = [];
+
+  for (const m of messages) {
+    const speaker = m.role || m.speaker || 'unknown';
+    const text = (m.content || m.text || '').trim();
+    if (!text) continue;
+    
+    if (speaker === currentSpeaker) {
+      currentContent.push(text);
+    } else {
+      combined.push({ speaker: currentSpeaker.toUpperCase(), text: currentContent.join(' ') });
+      currentSpeaker = speaker;
+      currentContent = [text];
+    }
+  }
+  if (currentContent.length > 0) {
+    combined.push({ speaker: currentSpeaker.toUpperCase(), text: currentContent.join(' ') });
+  }
+
+  const rawText = combined.map(m => `${m.speaker}: ${m.text}`).join('\n');
+  
+  // If under ~12,000 chars, just return it directly to save time and API calls
+  if (rawText.length < 12000) {
+    return rawText;
+  }
+
+  console.log(`Transcript is large (${rawText.length} chars). Compressing via AI chunking...`);
+  const chunkSize = 40; // Approx 40 dialogue turns per chunk
+  const compressedChunks = [];
+
+  for (let i = 0; i < combined.length; i += chunkSize) {
+    const chunk = combined.slice(i, i + chunkSize);
+    const chunkText = chunk.map(m => `${m.speaker}: ${m.text}`).join('\n');
+    
+    const prompt = `You are an AI assistant compressing an interview transcript segment to save tokens.
+Preserve evaluation evidence while avoiding unnecessary repeated conversational filler.
+Extract and format the following from this segment concisely:
+- Structured interview summary of this segment
+- Question/answer evidence (preserve linkage between what was asked and answered)
+- Important candidate responses (including mistakes and corrections)
+- Weak/strong concept evidence (technical evidence)
+- Relevant verbatim transcript excerpts
+
+Transcript Segment:
+${chunkText}`;
+    
+    try {
+       const summary = await groqGenerate(prompt, { temperature: 0.2, maxTokens: 1500 });
+       compressedChunks.push(`--- SEGMENT ${Math.floor(i / chunkSize) + 1} ---\n${summary}`);
+    } catch (err) {
+       console.warn(`Chunk compression failed for segment ${Math.floor(i / chunkSize) + 1}, using raw text.`, err.message);
+       compressedChunks.push(`--- SEGMENT ${Math.floor(i / chunkSize) + 1} (RAW) ---\n${chunkText}`);
+    }
+  }
+
+  return compressedChunks.join('\n\n');
+};
+
 const generateFeedback = async (interview, transcript, resumeProfile) => {
-  const fullTranscript = transcript.messages
-    .map((m) => `${(m.role || m.speaker || 'unknown').toUpperCase()}: ${m.content || m.text || ''}`)
-    .join('\n');
+  const processedTranscript = await compressLongTranscript(transcript.messages);
 
   const prompt = `You are an expert interviewer generating a comprehensive performance evaluation.
 Analyze the interview transcript and return a detailed JSON feedback report.
@@ -401,8 +463,8 @@ Interview Type: ${interview.interviewType}
 Difficulty: ${interview.difficulty}
 Candidate Profile: ${JSON.stringify(resumeProfile?.profile || {})}
 
-TRANSCRIPT:
-${fullTranscript.substring(0, 12000)}`;
+TRANSCRIPT / EVIDENCE:
+${processedTranscript.substring(0, 40000)}`;
 
   return groqGenerate(prompt, { jsonMode: true, temperature: 0.4, maxTokens: 4000 });
 };

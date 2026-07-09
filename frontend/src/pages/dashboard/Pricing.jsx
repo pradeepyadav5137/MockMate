@@ -74,7 +74,7 @@ const Pricing = () => (
           <ul className="plan-features">
             {[
               { text: 'Up to 30 minutes', ok: true },
-              { text: 'GPT-4o powered interviewer', ok: true },
+              { text: 'Groq AI powered interviewer', ok: true },
               { text: 'Resume-personalized questions', ok: true },
               { text: 'Basic AI feedback report', ok: true },
               { text: 'Live transcript', ok: true },
@@ -109,7 +109,7 @@ const Pricing = () => (
           <ul className="plan-features">
             {[
               { text: 'Up to 50 minutes', ok: true },
-              { text: 'GPT-4o powered interviewer', ok: true },
+              { text: 'Groq AI powered interviewer', ok: true },
               { text: 'Resume-personalized questions', ok: true },
               { text: 'Detailed AI feedback report', ok: true },
               { text: 'Full conversation transcript', ok: true },

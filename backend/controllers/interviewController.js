@@ -52,8 +52,8 @@ const createInterview = async (req, res) => {
       pricingTier: finalTier,
       maxDurationMinutes: finalDuration,
       status: 'scheduled',
-      isPaid: finalTier !== 'free',
-      recordingUnlocked: finalTier === 'pro',
+      isPaid: finalTier === 'free',
+      recordingUnlocked: false,
     });
 
     res.status(201).json({ interviewId: interview._id, maxDurationMinutes: interview.maxDurationMinutes, interviewType });
@@ -70,6 +70,10 @@ const getLivekitToken = async (req, res) => {
 
     const user = await User.findById(interview.userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
+
+    if (!interview.isPaid) {
+      return res.status(403).json({ error: 'Payment required before joining this interview' });
+    }
 
     const interviewMemory = interview.transcript?.length
       ? interview.transcript.map((m) => `${m.speaker}: ${m.text}`).join('\n').slice(-6000)
@@ -160,6 +164,7 @@ const getLivekitToken = async (req, res) => {
 
     if (interview.status === 'scheduled') {
       interview.status = 'in-progress';
+      interview.startedAt = interview.startedAt || new Date().toISOString();
       await interview.save();
     }
 
@@ -171,11 +176,28 @@ const getLivekitToken = async (req, res) => {
       interviewType: interview.interviewType,
       role: interview.role,
       existingTranscript: interview.transcript || [],
-      startedAt: interview.createdAt,
+      startedAt: interview.startedAt || interview.createdAt,
       success: true,
     });
   } catch (err) {
     console.error('getLivekitToken error:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const setTiming = async (req, res) => {
+  try {
+    if (!isInternalRequest(req)) return res.status(403).json({ error: 'Unauthorized' });
+    const interview = await Interview.findById(req.params.id);
+    if (!interview) return res.status(404).json({ error: 'Interview not found' });
+    
+    interview.startedAt = req.body.startedAt;
+    interview.closingAt = req.body.closingAt;
+    interview.endsAt = req.body.endsAt;
+    interview.hardEndsAt = req.body.hardEndsAt;
+    await interview.save();
+    res.json({ success: true });
+  } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
@@ -186,10 +208,15 @@ const endInterview = async (req, res) => {
     const interview = await Interview.findById(req.params.id);
     if (!interview) return res.status(404).json({ error: 'Interview not found' });
     if (req.user && String(interview.userId) !== getUserId(req)) return res.status(403).json({ error: 'Unauthorized' });
+    if (interview.status === 'completed') {
+      return res.json({ success: true, message: 'Already completed' });
+    }
 
     interview.status = 'completed';
     interview.completedAt = new Date().toISOString();
-    interview.actualDuration = Math.round((Date.now() - new Date(interview.createdAt).getTime()) / 1000);
+    interview.completionReason = req.body.reason || 'user_ended';
+    const actualStart = interview.startedAt ? new Date(interview.startedAt).getTime() : new Date(interview.createdAt).getTime();
+    interview.actualDuration = Math.round((Date.now() - actualStart) / 1000);
     interview.duration = interview.maxDurationMinutes;
     interview.recordingExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
     await interview.save();
@@ -209,18 +236,14 @@ const getFeedback = async (req, res) => {
     if (!interview) return res.status(404).json({ error: 'Interview not found' });
     if (String(interview.userId) !== getUserId(req)) return res.status(403).json({ error: 'Unauthorized' });
 
-    // Auto-complete in-progress interviews
     if (interview.status === 'in-progress' || interview.status === 'scheduled') {
-      interview.status = 'completed';
-      interview.completedAt = interview.completedAt || new Date().toISOString();
-      interview.actualDuration = Math.round((Date.now() - new Date(interview.createdAt).getTime()) / 1000);
-      interview.duration = interview.maxDurationMinutes;
-      await interview.save();
+      return res.status(202).json({ status: 'interview_active', message: 'Interview is still active, feedback not ready.' });
     }
 
     if (!interview.feedback?.generatedAt) {
       if (interview.status === 'completed') {
-        feedbackService.generateAndSave(interview._id).catch((err) => console.error('Feedback generation failed:', err.message));
+        // Feedback should have been triggered during endInterview. 
+        // We do not re-trigger it here to avoid duplicate generation unless it failed entirely.
       }
       return res.status(202).json({ status: 'generating' });
     }
@@ -304,6 +327,7 @@ const uploadRecording = async (req, res) => {
 module.exports = {
   createInterview,
   getLivekitToken,
+  setTiming,
   endInterview,
   getFeedback,
   addTranscript,

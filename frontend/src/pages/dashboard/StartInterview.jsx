@@ -40,6 +40,8 @@ const DURATIONS = [
 ];
 
 const VOICE_ACCENTS = [
+  { value: 'in-female', label: 'IN Female', detail: 'Clear and natural', lang: 'en-IN', pitch: 1, rate: 0.9, Icon: UserRound, provider: 'edge' },
+  { value: 'in-male', label: 'IN Male', detail: 'Professional and calm', lang: 'en-IN', pitch: 1, rate: 0.9, Icon: BriefcaseBusiness, provider: 'edge' },
   { value: 'us-female', label: 'US Female', detail: 'Clear and confident', lang: 'en-US', pitch: 1.08, rate: 0.92, Icon: UserRound },
   { value: 'us-male', label: 'US Male', detail: 'Direct and steady', lang: 'en-US', pitch: 0.86, rate: 0.9, Icon: BriefcaseBusiness },
   { value: 'uk-male', label: 'UK Male', detail: 'Formal and measured', lang: 'en-GB', pitch: 0.88, rate: 0.9, Icon: Globe2 },
@@ -68,7 +70,7 @@ const StartInterview = () => {
     interviewType: 'core_cs',
     difficulty: 'Medium',
     duration: 15,
-    voiceAccent: 'us-female',
+    voiceAccent: 'in-female',
     jobDescription: '',
   });
 
@@ -110,10 +112,15 @@ const StartInterview = () => {
     setPaymentLoading(true);
     try {
       const selectedTier = DURATIONS.find(d => d.value === config.duration)?.tier || 'basic';
-      // If they are on free tier but used limit, default to basic tier upgrade
       const upgradeTier = selectedTier === 'free' ? 'basic' : selectedTier;
       
-      const orderRes = await paymentService.createOrder({ type: 'interview', tier: upgradeTier });
+      // Create interview first
+      const payload = { ...config, pricingTier: upgradeTier, difficulty: config.difficulty.toLowerCase() };
+      const res = await interviewService.create(payload);
+      const interviewId = res.data.interviewId;
+      
+      const idempotencyKey = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2);
+      const orderRes = await paymentService.createOrder({ type: 'interview', tier: upgradeTier, interviewId, idempotencyKey });
       const { orderId, amount, keyId } = orderRes.data;
 
       const options = {
@@ -131,13 +138,10 @@ const StartInterview = () => {
               signature: response.razorpay_signature,
               type: 'interview',
               tier: upgradeTier,
+              interviewId,
             });
             toast.success('Payment successful! Starting interview...');
-            // Temporarily set config to the upgraded tier if they were on free
-            if (selectedTier === 'free') {
-              config.duration = 30; // bump to basic duration
-            }
-            await startInterview();
+            navigate(`/interview/${interviewId}/room`);
           } catch (err) {
             toast.error(err.response?.data?.error || 'Payment verification failed.');
           }
@@ -185,13 +189,41 @@ const StartInterview = () => {
     }
   };
 
+  // We keep a reference to currently playing backend audio so we can cancel it
+  const [currentAudio, setCurrentAudio] = useState(null);
+
   const playVoicePreview = (voice) => {
+    // Cancel any existing preview
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+    }
+
+    if (voice.provider === 'edge') {
+      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+      const audioUrl = `${baseUrl}/tts/preview?voice=${voice.value}`;
+      const audio = new Audio(audioUrl);
+      setCurrentAudio(audio);
+      setPreviewingVoice(voice.value);
+      
+      audio.onended = () => setPreviewingVoice(null);
+      audio.onerror = () => {
+        toast.error('Could not load Edge TTS preview.');
+        setPreviewingVoice(null);
+      };
+      audio.play().catch(e => {
+        console.error('Audio play blocked:', e);
+        setPreviewingVoice(null);
+      });
+      return;
+    }
+
     if (!('speechSynthesis' in window)) {
       toast.error('Voice preview is not supported in this browser.');
       return;
     }
 
-    window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(VOICE_PREVIEW_TEXT);
     utterance.lang = voice.lang;
     utterance.pitch = voice.pitch;

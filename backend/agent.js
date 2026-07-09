@@ -120,15 +120,14 @@ const agent = defineAgent({
       console.log('[agent] Connected to room');
 
       const metadata = getMetadata(ctx);
-      const { systemPrompt, maxDuration = 900, interviewId, voiceAccent = 'us-male' } = metadata;
+      const { systemPrompt, maxDuration = 900, interviewId, voiceAccent = 'us-male', isPaid } = metadata;
 
       if (!systemPrompt) {
         console.error('[agent] No system prompt in metadata — exiting');
         return;
       }
       if (!process.env.CARTESIA_API_KEY) {
-        console.error('[agent] CARTESIA_API_KEY is missing — Cartesia TTS cannot start');
-        return;
+        console.warn('[agent] CARTESIA_API_KEY is missing — Cartesia TTS cannot start, checking fallbacks');
       }
 
       console.log('[agent] System prompt loaded, interview:', interviewId);
@@ -145,13 +144,33 @@ const agent = defineAgent({
       // ── LLM: Groq (via OpenAI compat) ─────────────────────────────
       const llm = buildLlm();
 
-      // ── TTS: Cartesia ──────────────────────────────────────────────
-      const tts = new cartesia.TTS({
-        model: process.env.CARTESIA_MODEL || 'sonic-2',
-        voice: process.env.CARTESIA_VOICE_ID || CARTESIA_VOICES[voiceAccent] || CARTESIA_VOICES['us-male'],
-        apiKey: process.env.CARTESIA_API_KEY,
-        language: process.env.CARTESIA_LANGUAGE || 'en',
-      });
+      // ── TTS: Selection (Edge TTS / Cartesia) ──────────────────────
+      let tts;
+      const EDGE_VOICES = {
+        'in-female': 'en-IN-NeerjaNeural',
+        'in-male': 'en-IN-PrabhatNeural',
+        'us-female': 'en-US-AriaNeural',
+        'us-male': 'en-US-ChristopherNeural',
+        'uk-male': 'en-GB-RyanNeural',
+        'us-soft': 'en-US-AnaNeural',
+        'us-neutral': 'en-US-GuyNeural',
+      };
+
+      const { EdgeTTSPlugin } = require('./edgeTtsPlugin');
+      const edgeVoiceId = EDGE_VOICES[voiceAccent] || 'en-IN-NeerjaNeural';
+
+      if (!isPaid || voiceAccent.startsWith('in-') || !process.env.CARTESIA_API_KEY) {
+        console.log(`[agent] Using Edge TTS (Free tier / Indian voice / Fallback). Voice: ${edgeVoiceId}`);
+        tts = new EdgeTTSPlugin({ voice: edgeVoiceId });
+      } else {
+        console.log(`[agent] Using Cartesia TTS (Premium). Voice: ${voiceAccent}`);
+        tts = new cartesia.TTS({
+          model: process.env.CARTESIA_MODEL || 'sonic-2',
+          voice: process.env.CARTESIA_VOICE_ID || CARTESIA_VOICES[voiceAccent] || CARTESIA_VOICES['us-male'],
+          apiKey: process.env.CARTESIA_API_KEY,
+          language: process.env.CARTESIA_LANGUAGE || 'en',
+        });
+      }
 
       // ── Voice Agent Session ────────────────────────────────────────
       session = new voice.AgentSession({
@@ -161,34 +180,105 @@ const agent = defineAgent({
         turnDetection: 'server',
       });
 
+      // ── Timing and Lifecycle State ────────────────────────────────
+      const now = Date.now();
+      const nominalDurationMs = maxDuration * 1000;
+      const closingDurationMs = 120000; // 2 minutes
+      
+      const closingAtMs = now + nominalDurationMs - closingDurationMs;
+      const endsAtMs = now + nominalDurationMs;
+      const hardEndsAtMs = endsAtMs + 60000; // 1 min grace
+
+      let currentPhase = 'INTRO';
+      let introExchanges = 0;
+
+      // Sync timing to backend
+      if (interviewId) {
+        axios.post(
+          `${apiBaseUrl}/interview/${interviewId}/start-timing`,
+          {
+            startedAt: new Date(now).toISOString(),
+            closingAt: new Date(closingAtMs).toISOString(),
+            endsAt: new Date(endsAtMs).toISOString(),
+            hardEndsAt: new Date(hardEndsAtMs).toISOString(),
+          },
+          { headers: { 'x-internal-key': process.env.JWT_SECRET } }
+        ).catch(e => console.error('[agent] Sync timing failed:', e.message));
+      }
+
       session.on('error', (err) => {
         console.error('[agent] Session error:', err?.message || String(err));
       });
 
       let replyTimer;
       let pendingUserText = '';
+      let isGenerating = false;
+      let generationTurnId = 0;
+
+      const triggerNextTurn = () => {
+        if (isGenerating) return;
+        if (session.agentState === 'speaking' || session.agentState === 'thinking') return;
+        
+        const rawUserInput = pendingUserText;
+        if (!rawUserInput) return;
+        
+        pendingUserText = '';
+        isGenerating = true;
+        generationTurnId++;
+        const currentGenId = generationTurnId;
+
+        const timeNow = Date.now();
+        let phaseInstruction = '';
+
+        if (timeNow >= hardEndsAtMs) {
+            console.log('[agent] Hard timeout reached during turn, ending immediately.');
+            isGenerating = false;
+            return;
+        } else if (timeNow >= closingAtMs) {
+            currentPhase = 'CLOSING';
+            phaseInstruction = '\n\n[SYSTEM RULE: We are now in the CLOSING phase. You MUST immediately provide a concise spoken summary of my performance, ask if I have any final questions, answer briefly, and naturally wrap up the interview. DO NOT ask any new technical questions. End your final goodbye with the exact word "Goodbye." so the system knows to close.]';
+        } else {
+            if (currentPhase === 'INTRO') {
+                if (introExchanges >= 1) {
+                    currentPhase = 'TECHNICAL_INTERVIEW';
+                } else {
+                    introExchanges++;
+                    phaseInstruction = '\n\n[SYSTEM RULE: We are in the INTRO phase. Follow up on my introduction briefly.]';
+                }
+            }
+            
+            if (currentPhase === 'TECHNICAL_INTERVIEW') {
+                phaseInstruction = `\n\n[SYSTEM RULE: We are in the TECHNICAL_INTERVIEW phase. Substantial time remains (${Math.ceil((closingAtMs - timeNow)/60000)} min until closing). You MUST NOT end or conclude the interview yet. Reject any premature closing. Continue with another dynamic, in-category technical question, or a harder follow-up based on my previous answer.]`;
+            }
+        }
+
+        const userInput = rawUserInput + phaseInstruction;
+
+        try {
+          console.log(`[agent] Generating reply (Gen ID: ${currentGenId}) for:`, rawUserInput, `[Phase: ${currentPhase}]`);
+          session.generateReply({
+            userInput,
+            inputModality: 'text',
+            allowInterruptions: true,
+          });
+        } catch (err) {
+          console.error('[agent] Reply generation failed:', err.message || err);
+          isGenerating = false;
+        }
+      };
 
       session.on('user_input_transcribed', (ev) => {
         if (ev.isFinal && ev.transcript) {
           console.log('[agent] Candidate:', ev.transcript);
           saveTranscriptTurn(interviewId, 'user', ev.transcript);
           pendingUserText = [pendingUserText, ev.transcript].filter(Boolean).join(' ').trim();
-          clearTimeout(replyTimer);
-          replyTimer = setTimeout(() => {
-            const userInput = pendingUserText;
-            pendingUserText = '';
-            if (!userInput || session.agentState === 'speaking') return;
-            try {
-              console.log('[agent] Generating reply for:', userInput);
-              session.generateReply({
-                userInput,
-                inputModality: 'text',
-                allowInterruptions: true,
-              });
-            } catch (err) {
-              console.error('[agent] Reply generation failed:', err.message || err);
-            }
-          }, 900);
+          
+          if (!isGenerating && session.agentState !== 'speaking' && session.agentState !== 'thinking') {
+            clearTimeout(replyTimer);
+            replyTimer = setTimeout(triggerNextTurn, 900);
+          } else {
+            console.log('[agent] Preserving transcript, generation in progress or agent busy.');
+          }
         }
       });
 
@@ -199,11 +289,36 @@ const agent = defineAgent({
         if (text) {
           console.log('[agent] Alex:', text);
           saveTranscriptTurn(interviewId, 'assistant', text);
+          
+          if (currentPhase === 'CLOSING' && /goodbye/i.test(text)) {
+            console.log('[agent] Detected natural closing ("goodbye"). Scheduling normal_closing.');
+            setTimeout(async () => {
+              if (interviewId) {
+                await axios.post(
+                  `${apiBaseUrl}/interview/${interviewId}/end`,
+                  { reason: 'normal_closing' },
+                  { headers: { 'x-internal-key': process.env.JWT_SECRET } }
+                ).catch((e) => console.error('[agent] End notify failed:', e.message));
+              }
+              await session.close().catch(() => {});
+              await ctx.room.disconnect();
+            }, 5000); // give 5 seconds for TTS to finish speaking the goodbye
+          }
         }
       });
 
       session.on('agent_state_changed', (ev) => {
-        console.log('[agent] State:', ev.newState || ev.state);
+        const state = ev.newState || ev.state;
+        console.log('[agent] State:', state);
+        if (state === 'listening' || state === 'idle') {
+           isGenerating = false;
+           if (pendingUserText) {
+             clearTimeout(replyTimer);
+             replyTimer = setTimeout(triggerNextTurn, 900);
+           }
+        } else if (state === 'thinking' || state === 'speaking') {
+           isGenerating = true;
+        }
       });
 
       // ── Start the session ──────────────────────────────────────────
@@ -229,18 +344,18 @@ const agent = defineAgent({
         }
       }, 2000);
 
-      // ── Auto-end after max duration ────────────────────────────────
+      // ── Auto-end after max duration (Hard timeout) ────────────────
       endTimer = setTimeout(async () => {
-        console.log(`[agent] Max duration ${maxDuration}s reached; ending interview`);
+        console.log(`[agent] Hard timeout reached; ending interview forcibly`);
         try {
           await session.say(
-            "That's all the time we have. Your feedback is being prepared.",
+            "I'm so sorry, but we've run completely out of time for today. Your feedback is being prepared.",
             { allowInterruptions: false }
           );
           if (interviewId) {
             await axios.post(
               `${apiBaseUrl}/interview/${interviewId}/end`,
-              {},
+              { reason: 'time_expired' },
               { headers: { 'x-internal-key': process.env.JWT_SECRET } }
             ).catch((e) => console.error('[agent] End notify failed:', e.message));
           }
@@ -249,7 +364,7 @@ const agent = defineAgent({
         } catch (e) {
           console.error('[agent] Auto-end error:', e.message || e);
         }
-      }, maxDuration * 1000);
+      }, hardEndsAtMs - now);
 
     } catch (err) {
       console.error('[agent] Entry error:', err.message || err);

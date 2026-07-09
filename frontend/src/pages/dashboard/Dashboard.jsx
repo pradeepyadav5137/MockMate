@@ -131,7 +131,7 @@ const Dashboard = () => {
             <span>₹9+</span>
             <div>
               <strong>Premium Sessions</strong>
-              <span> - Unlock longer durations (up to 50 min) and GPT-4o feedback.</span>
+              <span> - Unlock longer durations (up to 50 min) and Groq AI feedback.</span>
             </div>
           </div>
           <Link to="/dashboard/pricing" className="btn btn-primary btn-sm">

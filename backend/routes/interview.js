@@ -7,6 +7,10 @@ const { protect } = require('../middleware/auth');
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 100 * 1024 * 1024 } });
 
 router.post('/create', protect, interviewController.createInterview);
+router.post('/:id/start-timing', (req, res, next) => {
+  if (req.headers['x-internal-key'] === process.env.JWT_SECRET) return interviewController.setTiming(req, res, next);
+  return res.status(403).json({ error: 'Unauthorized' });
+});
 router.get('/', protect, interviewController.getAll);
 router.get('/:id', protect, interviewController.getOne);
 router.get('/:id/token', protect, interviewController.getLivekitToken);

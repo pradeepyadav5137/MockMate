@@ -6,26 +6,9 @@ const { saveFeedbackReport } = require('./storageService');
 const activeGenerations = new Set();
 
 const buildFallbackFeedback = (interview, transcript, error) => {
-  const totalMessages = Array.isArray(transcript?.messages) ? transcript.messages.length : 0;
-  const summary = totalMessages
-    ? `Feedback generation is temporarily unavailable, but your interview transcript was captured successfully with ${totalMessages} message(s).`
-    : 'Feedback generation is temporarily unavailable, but your interview transcript was captured successfully.';
-
   return {
-    overallScore: 55,
-    technicalScore: 55,
-    communicationScore: 55,
-    confidenceScore: 55,
-    problemSolvingScore: 55,
-    summary,
-    strengths: ['Interview completed successfully'],
-    weaknesses: ['AI feedback generation was temporarily unavailable'],
-    missedOpportunities: ['Retry once the AI provider is reachable'],
-    improvementAreas: ['Review your transcript and practice your answers'],
-    questionBreakdown: [],
-    learningRoadmap: [],
-    interviewerRemarks: 'Your interview has been completed. The feedback service is temporarily unavailable, but your transcript and interview state were preserved.',
-    voiceSummary: '',
+    status: 'failed',
+    summary: 'Feedback is temporarily unavailable. Your interview transcript has been saved and feedback will be retried.',
     generatedAt: new Date(),
     fallbackError: error?.message || 'Unknown feedback generation error',
   };
@@ -98,11 +81,12 @@ const generateAndSave = async (interviewId) => {
     // Note: No voice summary generation as requested in SECTION 9
 
     interview.feedback = {
-      overallScore: feedbackReport.overallScore ?? 0,
-      technicalScore: feedbackReport.technicalScore ?? feedbackReport.scores?.technical ?? 0,
-      communicationScore: feedbackReport.communicationScore ?? feedbackReport.scores?.communication ?? 0,
-      confidenceScore: feedbackReport.confidenceScore ?? feedbackReport.scores?.confidence ?? 0,
-      problemSolvingScore: feedbackReport.problemSolvingScore ?? feedbackReport.scores?.problemSolving ?? 0,
+      status: feedbackReport.status || 'success',
+      overallScore: feedbackReport.overallScore ?? null,
+      technicalScore: feedbackReport.technicalScore ?? feedbackReport.scores?.technical ?? null,
+      communicationScore: feedbackReport.communicationScore ?? feedbackReport.scores?.communication ?? null,
+      confidenceScore: feedbackReport.confidenceScore ?? feedbackReport.scores?.confidence ?? null,
+      problemSolvingScore: feedbackReport.problemSolvingScore ?? feedbackReport.scores?.problemSolving ?? null,
       summary: feedbackReport.summary,
       strengths: feedbackReport.strengths || [],
       weaknesses: feedbackReport.weaknesses || [],
@@ -110,7 +94,7 @@ const generateAndSave = async (interviewId) => {
       improvementAreas: feedbackReport.improvementAreas || [],
       questionBreakdown: feedbackReport.questionBreakdown || [],
       learningRoadmap: feedbackReport.learningRoadmap || [],
-      interviewerRemarks: feedbackReport.interviewerRemarks,
+      interviewerRemarks: feedbackReport.interviewerRemarks || '',
       voiceSummary: '',
       fallbackError: feedbackReport.fallbackError,
       generatedAt: new Date(),

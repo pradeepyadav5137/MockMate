@@ -38,7 +38,12 @@ const NewInterview = () => {
 
   const handlePaidStart = async () => {
     if (!window.Razorpay) throw new Error('Razorpay checkout script is not loaded');
-    const { data: order } = await paymentService.createOrder({ type: 'interview', tier: selectedTier });
+    
+    // Create interview first
+    const { data: interviewData } = await interviewService.create({ interviewType: selectedType, pricingTier: selectedTier });
+
+    const idempotencyKey = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2);
+    const { data: order } = await paymentService.createOrder({ type: 'interview', tier: selectedTier, interviewId: interviewData.interviewId, idempotencyKey });
     return new Promise((resolve, reject) => {
       const rzp = new window.Razorpay({
         key: process.env.REACT_APP_RAZORPAY_KEY_ID,
@@ -55,8 +60,12 @@ const NewInterview = () => {
               signature: response.razorpay_signature,
               type: 'interview',
               tier: selectedTier,
+              interviewId: interviewData.interviewId,
             });
-            await createAndNavigate();
+            const { data: tokenData } = await interviewService.getToken(interviewData.interviewId);
+            localStorage.setItem(`livekit_token_${interviewData.interviewId}`, tokenData.token);
+            localStorage.setItem(`livekit_url_${interviewData.interviewId}`, tokenData.serverUrl || '');
+            navigate(`/interview/${interviewData.interviewId}/room`);
             resolve();
           } catch (err) { reject(err); }
         },

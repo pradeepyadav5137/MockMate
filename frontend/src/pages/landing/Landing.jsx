@@ -35,7 +35,7 @@ const FAQS = [
   { q: 'How is this different from practicing with a friend?', a: "The AI is available 24/7, has deep technical knowledge, tracks performance objectively, and gives detailed structured feedback a friend typically can't." },
   { q: 'Is the free plan actually useful?', a: '1 interview per day is enough for consistent practice. Most improvements happen with regular short sessions, not occasional long ones.' },
   { q: 'What happens to my resume data?', a: 'We mask all PII (phone, email, address) before processing. Only professional info is kept. Delete anytime from your profile.' },
-  { q: 'How long does feedback take to generate?', a: 'Typically 30–60 seconds after the interview ends. GPT-4o analyzes the full conversation and generates a comprehensive report.' },
+  { q: 'How long does feedback take to generate?', a: 'Typically 30–60 seconds after the interview ends. Groq AI analyzes the full conversation and generates a comprehensive report.' },
 ];
 
 const FaqItem = ({ q, a }) => {
@@ -100,7 +100,7 @@ const Landing = () => {
           <a href="#how-it-works" className="btn btn-secondary btn-lg"><Play size={16} /> See How It Works</a>
         </div>
         <div className="hero-stats animate-fade-in-up animate-delay-3">
-          {[['1 Free', 'Interview Daily'], ['₹19', 'Premium Interview'], ['GPT-4o', 'Powered AI'], ['7 Roles', 'Supported']].map(([v, l]) => (
+          {[['1 Free', 'Interview Daily'], ['₹19', 'Premium Interview'], ['Llama 3', 'Powered AI'], ['7 Roles', 'Supported']].map(([v, l]) => (
             <div key={l} className="hero-stat"><span className="hero-stat-value">{v}</span><span className="hero-stat-label">{l}</span></div>
           ))}
         </div>
@@ -201,7 +201,7 @@ const Landing = () => {
             <h3>Basic Plan</h3>
             <div className="landing-price">₹9 <span style={{ fontSize: 13, color: '#94a3b8' }}>/interview</span></div>
             <ul className="landing-features">
-              {['30 minutes duration', 'GPT-4o AI interviewer', 'Resume-personalized questions', 'Basic AI feedback report', 'Live transcript', 'Voice recording (24h)'].map(f => (
+              {['30 minutes duration', 'Groq AI interviewer', 'Resume-personalized questions', 'Basic AI feedback report', 'Live transcript', 'Voice recording (24h)'].map(f => (
                 <li key={f}><CheckCircle size={13} /> {f}</li>
               ))}
             </ul>
@@ -214,7 +214,7 @@ const Landing = () => {
             <h3>Pro Plan</h3>
             <div className="landing-price">₹19 <span style={{ fontSize: 13, color: '#94a3b8' }}>/interview</span></div>
             <ul className="landing-features">
-              {['50 minutes duration', 'GPT-4o AI interviewer', 'Resume-personalized questions', 'Detailed AI feedback report', 'Full conversation transcript', 'Voice recording (24h)', 'PDF feedback report', 'Learning roadmap'].map(f => (
+              {['50 minutes duration', 'Groq AI interviewer', 'Resume-personalized questions', 'Detailed AI feedback report', 'Full conversation transcript', 'Voice recording (24h)', 'PDF feedback report', 'Learning roadmap'].map(f => (
                 <li key={f}><CheckCircle size={13} /> {f}</li>
               ))}
             </ul>

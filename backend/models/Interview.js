@@ -119,7 +119,12 @@ const InterviewModel = {
       recordingDeletedAt: data.recordingDeletedAt || null,
       reminderEmailSent: Boolean(data.reminderEmailSent),
       createdAt: data.createdAt || now,
+      startedAt: data.startedAt || null,
+      closingAt: data.closingAt || null,
+      endsAt: data.endsAt || null,
+      hardEndsAt: data.hardEndsAt || null,
       completedAt: data.completedAt || null,
+      completionReason: data.completionReason || null,
     };
     return putItem(item);
   },

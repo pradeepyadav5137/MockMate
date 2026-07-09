@@ -19,7 +19,10 @@ initDynamoDBTable().catch((err) => console.warn('DynamoDB init warning:', err.me
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(morgan('dev'));
 app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:3000', credentials: true }));
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ 
+  limit: '10mb',
+  verify: (req, res, buf) => { req.rawBody = buf; }
+}));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(passport.initialize());
 
@@ -42,6 +45,7 @@ app.use('/api/livekit', require('./routes/livekit'));
 app.use('/api/support', require('./routes/ticket'));
 app.use('/api/user-feedback', require('./routes/userFeedback'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/tts', require('./routes/tts'));
 
 // Temporary route to manually upgrade user without AWS keys
 app.get('/api/make-admin', async (req, res) => {

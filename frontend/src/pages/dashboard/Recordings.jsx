@@ -142,9 +142,11 @@ const RecordingCard = ({ interview, onUnlockSuccess }) => {
   const handleUnlock = useCallback(async () => {
     setUnlocking(true);
     try {
+      const idempotencyKey = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2);
       const orderRes = await paymentService.createOrder({
         type: 'recording_unlock',
         interviewId: interview._id,
+        idempotencyKey,
       });
       const { orderId, amount, keyId } = orderRes.data;
 

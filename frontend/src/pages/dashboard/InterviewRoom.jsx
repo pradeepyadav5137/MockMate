@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  Mic, MicOff, PhoneOff, SkipForward, Clock, Loader
+  Mic, MicOff, PhoneOff, SkipForward, Clock, Loader, Star
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Room, RoomEvent, Track } from 'livekit-client';
-import { interviewService } from '../../services/services';
+import { interviewService, userFeedbackService } from '../../services/services';
 import '../../styles/globals.css';
 import './InterviewRoom.css';
 
@@ -57,6 +57,11 @@ const InterviewRoom = () => {
   const [reconnecting,    setReconnecting]    = useState(false);
   const [micError,        setMicError]        = useState(false);
   const [micLevel,        setMicLevel]        = useState(0);
+
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [feedbackRating, setFeedbackRating] = useState(0);
+  const [feedbackText, setFeedbackText] = useState('');
+  const [feedbackHover, setFeedbackHover] = useState(0);
 
   const setupAudioAnalyser = useCallback((stream) => {
     if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
@@ -555,11 +560,39 @@ const InterviewRoom = () => {
 
     try {
       await interviewService.end(id);
-      toast.success('Interview complete - generating your feedback report...');
     } catch (err) {
       console.warn('Error ending interview on server:', err);
     }
 
+    setShowFeedbackModal(true);
+  };
+
+  const submitAppFeedback = async () => {
+    setEnding(true); // Re-use ending state for loading spinner
+    if (feedbackRating > 0) {
+      try {
+        await userFeedbackService.submit({
+          interviewId: id,
+          type: 'improvement',
+          overallRating: feedbackRating,
+          interviewQualityRating: feedbackRating,
+          aiVoiceQualityRating: feedbackRating,
+          questionRelevanceRating: feedbackRating,
+          feedbackText: feedbackText,
+        });
+        toast.success('Thanks for your feedback!');
+      } catch (err) {
+        if (err.response?.status !== 409) {
+          console.warn('Failed to submit user feedback', err.message);
+        }
+      }
+    }
+    toast.success('Generating your interview report...');
+    navigate(`/dashboard/feedback/${id}`);
+  };
+
+  const skipAppFeedback = () => {
+    toast.success('Generating your interview report...');
     navigate(`/dashboard/feedback/${id}`);
   };
 
@@ -764,11 +797,63 @@ const InterviewRoom = () => {
             onClick={handleEndInterview}
             disabled={ending}
           >
-            {ending ? <Loader size={18} className="ir-spinner" /> : <PhoneOff size={20} />}
-            <span>{ending ? 'Uploading Recording... Wait' : 'End Interview'}</span>
+            {ending && !showFeedbackModal ? <Loader size={18} className="ir-spinner" /> : <PhoneOff size={20} />}
+            <span>{ending && !showFeedbackModal ? 'Ending...' : 'End Interview'}</span>
           </button>
         </div>
       </div>
+
+      {showFeedbackModal && (
+        <div className="ir-modal-overlay">
+          <div className="ir-modal glass-card animate-fade-in-up" style={{ padding: '32px', width: '90%', maxWidth: '400px', textAlign: 'center' }}>
+            <h2 style={{ fontSize: 20, marginBottom: 8, color: '#f1f5f9' }}>How was your experience?</h2>
+            <p style={{ fontSize: 14, color: '#94a3b8', marginBottom: 24, lineHeight: 1.5 }}>
+              Help us improve MockMate by rating the app's UI and AI voice quality.
+            </p>
+            
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 24 }}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  style={{ 
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    color: star <= (feedbackHover || feedbackRating) ? '#f59e0b' : '#334155',
+                    transition: 'color 0.2s'
+                  }}
+                  onMouseEnter={() => setFeedbackHover(star)}
+                  onMouseLeave={() => setFeedbackHover(0)}
+                  onClick={() => setFeedbackRating(star)}
+                >
+                  <Star size={32} fill={star <= (feedbackHover || feedbackRating) ? 'currentColor' : 'none'} />
+                </button>
+              ))}
+            </div>
+
+            <textarea
+              className="form-input"
+              style={{ width: '100%', minHeight: 80, marginBottom: 24, resize: 'none', background: 'rgba(15, 23, 42, 0.6)' }}
+              placeholder="Any suggestions for improvement? (Optional)"
+              value={feedbackText}
+              onChange={(e) => setFeedbackText(e.target.value)}
+            />
+
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button className="btn btn-secondary" style={{ flex: 1 }} onClick={skipAppFeedback}>
+                Skip
+              </button>
+              <button 
+                className="btn btn-primary" 
+                style={{ flex: 1 }} 
+                onClick={submitAppFeedback}
+                disabled={feedbackRating === 0}
+              >
+                Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

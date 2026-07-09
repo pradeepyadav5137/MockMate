@@ -121,7 +121,8 @@ const FeedbackPage = () => {
   const handleUnlockRecording = async () => {
     setUnlockLoading(true);
     try {
-      const orderRes = await paymentService.createOrder({ type: 'recording_unlock', interviewId: id });
+      const idempotencyKey = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2);
+      const orderRes = await paymentService.createOrder({ type: 'recording_unlock', interviewId: id, idempotencyKey });
       const { orderId, amount, keyId } = orderRes.data;
 
       const options = {
@@ -219,8 +220,25 @@ const FeedbackPage = () => {
       </div>
 
       <div className="page-content">
-        {/* Overall Score */}
-        <div className="feedback-hero glass-card animate-fade-in-up">
+        {f.status === 'failed' ? (
+          <div className="feedback-hero glass-card animate-fade-in-up" style={{ padding: 48, textAlign: 'center' }}>
+            <AlertCircle size={48} style={{ color: '#f59e0b', margin: '0 auto 16px' }} />
+            <h2 style={{ fontSize: 24, marginBottom: 12, color: '#f1f5f9' }}>Feedback Temporarily Unavailable</h2>
+            <p style={{ color: '#94a3b8', fontSize: 16, maxWidth: 600, margin: '0 auto 24px', lineHeight: 1.6 }}>
+              {f.summary}
+            </p>
+            {f.fallbackError && (
+              <div style={{ background: 'rgba(239, 68, 68, 0.1)', padding: 12, borderRadius: 8, display: 'inline-block' }}>
+                <p style={{ color: '#ef4444', fontSize: 13, margin: 0, fontFamily: 'monospace' }}>
+                  Technical detail: {f.fallbackError}
+                </p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            {/* Overall Score */}
+            <div className="feedback-hero glass-card animate-fade-in-up">
           <div className="feedback-hero-left">
             <div className="overall-score-ring">
               <ScoreCircle score={f.overallScore || 0} label="Overall" color="#14b8a6" size={160} />
@@ -238,6 +256,8 @@ const FeedbackPage = () => {
             </div>
           </div>
         </div>
+        </>
+        )}
 
         {/* Recording Section */}
         {f.interview && (f.interview.recordingPath || f.interview.recordingStatus) && (
@@ -344,6 +364,8 @@ const FeedbackPage = () => {
           </div>
         )}
 
+      {f.status !== 'failed' && (
+        <>
         {/* Evaluations */}
         <div className="eval-grid animate-fade-in-up">
           {[
@@ -432,6 +454,8 @@ const FeedbackPage = () => {
               <p className="remarks-text">"{f.interviewerRemarks}"</p>
             </div>
           </div>
+        )}
+        </>
         )}
       </div>
     </div>
